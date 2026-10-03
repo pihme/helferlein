@@ -1,0 +1,19 @@
+{
+  "_note": "Read by .github/scripts/release.py. One component, tag vX.Y.Z. paths: only commits touching them count. version_file: bumped by `npm version` in a chore(release) commit, so the build banner carries the new version. build/assets: {name} and {ver} are replaced. Nothing is published to npm.",
+  "components": [
+    {
+      "name": "helferlein",
+      "tag_prefix": "v",
+      "paths": ["src/", "types/", "scripts/build.mjs", "package.json", "package-lock.json"],
+      "version_file": "package.json",
+      "build": [
+        ["npm", "ci"],
+        ["npm", "run", "build"],
+        ["npm", "run", "size"],
+        ["npm", "pack", "--pack-destination", "release-out"]
+      ],
+      "assets": ["dist/helferlein.min.js", "dist/helferlein.js", "release-out/{name}-{ver}.tgz", "LICENSE", "THIRD_PARTY_NOTICES.md"],
+      "notes": "### Use\n\n- **Script tag:** download `helferlein.min.js` below. It includes three.js and puts `Helferlein` on `window`: `<script src=\"helferlein.min.js\"></script>`, then `Helferlein.mount(element)`.\n- **ES module:** `helferlein.js` imports `three` (peer dependency, see the README for the supported range). Or install the package file: `npm install three ./{name}-{ver}.tgz`.\n\nNot published to npm. `LICENSE` and `THIRD_PARTY_NOTICES.md` are attached for the license notices (three.js, MIT, is bundled in `helferlein.min.js`)."
+    }
+  ]
+}

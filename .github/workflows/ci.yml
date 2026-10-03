@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # never cancel a run on main: it may be cutting a release
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        # the oldest Node.js major the tooling supports and the current LTS
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - name: Build dist/helferlein.js and dist/helferlein.min.js
+        run: npm run build
+      - name: Size budget
+        run: npm run size
+      - name: Type declarations
+        run: npm run typecheck
+      - run: npm test
+
+  three-floor:
+    # the lowest three.js in the peer range (package.json peerDependencies)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install the oldest supported three
+        run: |
+          floor=$(node -p "require('./package.json').peerDependencies.three.replace(/^>=\s*/, '')")
+          echo "three@$floor"
+          npm install --no-save "three@$floor"
+      - run: npm test
+
+  release:
+    needs: [test, three-floor]
+    # release commits are pushed with GITHUB_TOKEN (no new run) and carry the skip-CI token;
+    # the message check is a third guard against loops
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !startsWith(github.event.head_commit.message, 'chore(release):')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: release
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - name: Tag, bump package.json and attach the build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 .github/scripts/release.py
+      # npm is not used yet. When the package goes to npm, add a publish step here, after the
+      # release: `npm publish --provenance --access public` with `permissions: id-token: write`
+      # and an NPM_TOKEN secret (or trusted publishing), and remove "private": true from package.json.
