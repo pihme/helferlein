@@ -1,6 +1,6 @@
 # Helferlein
 
-An animated 3D avatar that a page can use as a visible helper. Status: spec only. No application code.
+An animated 3D avatar that a page can use as a visible helper. Status: implemented. The figure is in `src/`, the included demo (section 13) in `demo/`, and the tests in `test/`. What is still open is in section 10.
 
 ## 1. Name
 
