@@ -1,5 +1,9 @@
 # Helferlein
 
+<p align="center">
+  <img src="docs/mascot.png" width="220" alt="Helferlein in its first look: a pale peanut-shaped android with a dark visor, two round blue eyes, a small smile and thin arms">
+</p>
+
 [![CI](https://github.com/pihme/helferlein/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/pihme/helferlein/actions/workflows/ci.yml)
 [![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-blue)](LICENSE)
 [![three.js](https://img.shields.io/badge/three.js-%3E%3D0.170-049ef4)](package.json)
