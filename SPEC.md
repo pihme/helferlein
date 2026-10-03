@@ -83,6 +83,10 @@ The stored roll is the look plus its memory: the fields that just changed, the r
 | Spin. The new look appears while the back faces the viewer | Applied. |
 | Back into the resting form | Dismiss. |
 
+**Reduced motion.** When the reader asks for reduced motion (`prefers-reduced-motion: reduce`), or the host sets it, nothing floats, sways, or flaps, the swoop and the fold are cuts, the working face holds on focused, and an applied roll shows the new look at once instead of spinning. The host events and the stored roll stay the same.
+
+**No WebGL.** When the browser gives no WebGL context, the figure is a still silhouette in the look’s colors. It takes the same events and keeps the same stored roll; an applied roll changes the colors at once. Mounting does not throw.
+
 ## 8. A new look
 
 One applied event, one roll. The hue changes, and at least one other attribute changes. One or two of the other attributes are drawn, not all of them. The sit-out, the locks, and the chances are in section 6. A roll draws from:
@@ -166,7 +170,7 @@ A new body, a new set of clothes, a new tool, or a new extra can be added withou
 
 A body supplies its mesh and the points in section 11. Clothes supply a drawing on the body. A tool supplies its mesh, the place the fist closes, and which way the working end points. An extra supplies its mesh and which point it hangs on. The shipped set is the catalog in section 8.
 
-The figure is what a page embeds. It is one library, a vendored Three.js build, and no UI framework. The page mounts the figure and sends the events in section 6. The page draws its own chat, its own navigation, and its own background.
+The figure is what a page embeds. It is one library with Three.js as a peer dependency, and no UI framework. It ships as an ES module that imports `three`, and as one script-tag file with Three.js bundled. The page mounts the figure and sends the events in section 6. The page draws its own chat, its own navigation, and its own background.
 
 ## 13. The included demo
 
