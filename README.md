@@ -84,9 +84,12 @@ import { mount } from "helferlein";
 
 const figure = mount(document.getElementById("helper"));
 
-// Restore the look the page kept from last time, if any.
+// Restore the look the page kept from last time, if any. A broken or outdated blob is
+// rejected with an error: drop it and start from the first look.
 const saved = localStorage.getItem("helferlein");
-if (saved) figure.setBlob(JSON.parse(saved));
+if (saved) {
+  try { figure.setBlob(JSON.parse(saved)); } catch { localStorage.removeItem("helferlein"); }
+}
 
 figure.summon();                 // swoop in, then idle
 figure.working();                // working pose while your page does its work
