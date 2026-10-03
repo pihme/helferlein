@@ -196,7 +196,7 @@ Releases are automatic. After CI passes on `main`, `.github/scripts/release.py` 
 | `types/` | `index.d.ts`, the declarations; `check.ts`, their compile check |
 | `scripts/` | `build.mjs` (esbuild) and `size.mjs` (the size budget) |
 | `demo/` | The included host: `demo.html` (chat), `wardrobe.html`, their scripts, the stored state (`store.js`), and the part icons |
-| `site/` | The website's landing page; the Pages workflow adds the demo and the build |
+| `site/` | The website's landing page and favicons; the Pages workflow adds the demo and the build |
 | `prototype/` | The visual prototype (three.js through an import map from `node_modules`) |
 | `assets/` | Reference sketches of the shape (SVG): [sheet](assets/helferlein-poses.svg), [resting](assets/helferlein-lamp.svg), [idle](assets/helferlein-idle.svg), [thinking](assets/helferlein-thinking.svg), [applied](assets/helferlein-applied.svg). Concept art, not the design |
 | `design/` | Prototype notes per part, the tool grips (`holds.md`), and the implementation plan |

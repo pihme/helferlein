@@ -41,7 +41,7 @@ jobs:
       - name: Assemble the site
         run: |
           mkdir -p _site/dist _site/src
-          cp site/index.html _site/
+          cp site/index.html site/favicon.svg site/favicon.png site/apple-touch-icon.png _site/
           cp -r demo _site/demo
           cp src/roll.js src/blob.js _site/src/
           cp dist/helferlein.min.js dist/helferlein.js LICENSE THIRD_PARTY_NOTICES.md _site/dist/
