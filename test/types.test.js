@@ -29,3 +29,12 @@ test("the declared look, memory and exports match the code", () => {
   const blob = api.rollFrom(api.defaultLook(), api.blankMemory());
   assert.deepEqual(Object.keys(blob).sort(), ["look", "memory"]);
 });
+
+test("the public rollFrom names a missing or broken look", () => {
+  assert.throws(() => api.rollFrom(), { name: "TypeError", message: /rollFrom\(look, memory\) needs a look/ });
+  assert.throws(() => api.rollFrom({}), /look is missing hue/);
+  assert.throws(() => api.rollFrom(api.defaultLook(), { cooled: [] }), /memory is missing hold/);
+  const roll = api.rollFrom({ ...api.defaultLook(), hue: -30 });
+  assert.ok(Number.isInteger(roll.look.hue) && roll.look.hue >= 0 && roll.look.hue < 360);
+  assert.deepEqual(Object.keys(api.rollFrom(api.defaultLook(), null)).sort(), ["look", "memory"]);
+});

@@ -129,19 +129,19 @@ The host drives every motion; the avatar watches no files, processes, or network
 
 ### The stored roll
 
-The look and its memory (what just changed, the locks, the absent streaks) are one plain JSON blob, `{ look, memory }`. The host decides where to keep it.
+The look and its memory (what just changed, the locks, the absent streaks) are one plain JSON blob, `{ look, memory }`. The host decides where to keep it. The hue is a whole number of degrees, 0 to 359: `setLook`, `setBlob` and `rollFrom` round any other finite number and wrap it around the wheel (`-5` becomes `355`, `360` becomes `0`); a hue that is not a number is rejected.
 
 | Call | Use |
 | --- | --- |
 | `getBlob()` | The current blob. |
-| `setBlob(blob)` | Restores a blob without a spin. A blob with unknown or missing fields is rejected with an error. The wardrobe's hue slider uses it. |
+| `setBlob(blob)` | Restores a blob without a spin. A blob with unknown or missing fields, or a value of the wrong type, is rejected with an error. The wardrobe's hue slider uses it. |
 | `watchReveal(fn)` | Calls `fn` once, at the moment the new look appears during the next spin. The demo saves the roll and reloads the page there. |
 | `returnFromBack()` | After such a reload: the figure starts facing away and turns back to the viewer. Returns a promise. |
-| `setLook(partial)` | Sets parts of the look directly, for example `{ hue: 30 }`, without a spin. The memory is kept. |
+| `setLook(partial)` | Sets parts of the look directly, for example `{ hue: 30 }`, without a spin. The memory is kept. It checks the values like `setBlob`. |
 | `turn(yaw, pitch)` | Rotates the figure by the given radians; pitch stops at 70°. The wardrobe uses it for dragging. |
 | `dispose()` | Stops the animation loop, frees the renderer, and removes what `mount` added. |
 
-The module also exports `rollFrom(look, memory)` (one roll, as `applied()` does), `defaultLook()`, `blankMemory()`, and the catalog lists `SHAPES`, `ROLL_EXPRESSIONS`, `CLOTHES`, `TOOLS`, `EXTRAS`. On the figure, `webgl` and `reducedMotion` tell the host which mode it runs in.
+The module also exports `rollFrom(look, memory)` (one roll, as `applied()` does; it checks the look like `setBlob` and throws a `TypeError` without one), `defaultLook()`, `blankMemory()`, and the catalog lists `SHAPES`, `ROLL_EXPRESSIONS`, `CLOTHES`, `TOOLS`, `EXTRAS`. On the figure, `webgl` and `reducedMotion` tell the host which mode it runs in.
 
 ### Types
 

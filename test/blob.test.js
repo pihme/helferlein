@@ -60,3 +60,18 @@ test("the blob module does not touch browser storage", () => {
   assert.equal(src.includes("localStorage"), false);
   assert.equal(src.includes("sessionStorage"), false);
 });
+
+test("the hue is an integer 0..359: other numbers wrap and round, strings are rejected", () => {
+  const blob = hue => readBlob({ look: { ...defaultLook(), hue }, memory: blankMemory() }).look.hue;
+  assert.equal(blob(9999), 279);
+  assert.equal(blob(-5), 355);
+  assert.equal(blob(360), 0);
+  assert.equal(blob(12.5), 13);
+  assert.equal(blob(359.6), 0);
+  assert.ok(Object.is(blob(-0.2), 0));
+  assert.equal(blob(210), 210);
+  assert.throws(() => blob("30"), /look\.hue is not a number/);
+  assert.throws(() => blob(Number.NaN), /look\.hue is not a number/);
+  assert.throws(() => blob(Infinity), /look\.hue is not a number/);
+  assert.equal(writeBlob({ ...defaultLook(), hue: 720.4 }, blankMemory()).look.hue, 0);
+});

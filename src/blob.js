@@ -31,6 +31,12 @@ function finiteNumber(value, label) {
   return value;
 }
 
+// Degrees on the color wheel, as an integer 0..359: other numbers wrap around and round.
+function hueOf(value, label) {
+  const hue = Math.round(finiteNumber(value, label)) % 360;
+  return hue < 0 ? hue + 360 : hue + 0;
+}
+
 function count(value, label) {
   if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
     reject(`${label} is not a count`);
@@ -42,7 +48,7 @@ function copyLook(look) {
   const colorKeys = COLOR_ROLES.flatMap(([key]) => [`${key}S`, `${key}L`]);
   only(look, ["hue", "shape", "expression", "clothes", "tool", "extra", ...colorKeys], "look");
   const out = {
-    hue: finiteNumber(look.hue, "look.hue"),
+    hue: hueOf(look.hue, "look.hue"),
     shape: oneOf(look.shape, SHAPES, "look.shape"),
     expression: oneOf(look.expression, ROLL_EXPRESSIONS, "look.expression"),
     clothes: oneOf(look.clothes, CLOTHES, "look.clothes"),

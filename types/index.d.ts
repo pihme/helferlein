@@ -14,6 +14,7 @@ export type Extra =
 
 /** One look: the hue (degrees), the parts, and per color role a saturation and lightness (0..1). */
 export interface Look {
+  /** Whole degrees, 0..359. Other finite numbers are rounded and wrapped around the wheel; a non-number is rejected. */
   hue: number;
   shape: Shape;
   expression: Expression;
@@ -88,7 +89,7 @@ export interface Figure {
   getBlob(): LookBlob;
   /** Restore a stored roll without a spin. Throws on unknown or missing fields. */
   setBlob(blob: LookBlob): void;
-  /** Set parts of the look directly, without a spin. The memory is kept. */
+  /** Set parts of the look directly, without a spin. The memory is kept. Checked like `setBlob`. */
   setLook(partial: Partial<Look>): void;
   /** Rotate the figure by these radians (yaw, then pitch, which stops at 70 degrees). */
   turn(yaw: number, pitch?: number): void;
@@ -102,7 +103,7 @@ export interface Figure {
  */
 export function mount(element: HTMLElement, options?: MountOptions): Figure;
 
-/** One roll from a look and its memory, as `applied()` does. */
+/** One roll from a look and its memory, as `applied()` does. Checks the look like `setBlob`; throws without one. */
 export function rollFrom(look: Look, memory?: Memory): LookBlob;
 /** The first look: the android, no clothes, no tool, no extra. */
 export function defaultLook(): Look;
