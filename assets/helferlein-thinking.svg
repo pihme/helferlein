@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 300" role="img" aria-labelledby="title">
+  <title id="title">Helferlein thinking</title>
+  <defs>
+    <linearGradient id="shell" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#e7eef6"/>
+      <stop offset="1" stop-color="#b7c6d6"/>
+    </linearGradient>
+    <linearGradient id="arm" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#d5e0ec"/>
+      <stop offset="0.5" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#aebfd0"/>
+    </linearGradient>
+    <radialGradient id="eye" cx="40%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#f4fcff"/>
+      <stop offset="0.45" stop-color="#7ad7ff"/>
+      <stop offset="1" stop-color="#1aa3d6"/>
+    </radialGradient>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="10" stdDeviation="6" flood-color="#1b2430" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+  <rect width="240" height="300" fill="#f6f3ec"/>
+  <g transform="translate(110 160)">
+    <ellipse cx="0" cy="118" rx="50" ry="8" fill="#1b2430" opacity="0.12"/>
+    <g filter="url(#soft)">
+      <g transform="rotate(28 -62 10)">
+        <rect x="-78" y="-8" width="16" height="72" rx="8" fill="url(#arm)"/>
+      </g>
+      <g transform="rotate(-58 40 -20)">
+        <rect x="48" y="-46" width="16" height="70" rx="8" fill="url(#arm)"/>
+      </g>
+      <ellipse cx="0" cy="36" rx="38" ry="34" fill="url(#shell)"/>
+      <ellipse cx="0" cy="-62" rx="44" ry="56" fill="url(#shell)"/>
+      <ellipse cx="-14" cy="-92" rx="14" ry="18" fill="#ffffff" opacity="0.5"/>
+      <rect x="-28" y="-74" width="56" height="40" rx="16" fill="#1a1e27"/>
+      <path d="M-18 -70 q8 -4 14 2" fill="none" stroke="#9adfff" stroke-width="2" stroke-linecap="round"/>
+      <path d="M2 -68 q8 -4 14 2" fill="none" stroke="#9adfff" stroke-width="2" stroke-linecap="round"/>
+      <ellipse cx="-8" cy="-62" rx="4.2" ry="5" fill="url(#eye)"/>
+      <ellipse cx="14" cy="-64" rx="4.2" ry="5" fill="url(#eye)"/>
+      <path d="M-8 -46 h16" fill="none" stroke="#7ad7ff" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="36" cy="-132" r="3" fill="#7ad7ff"/>
+      <circle cx="48" cy="-122" r="2.2" fill="#7ad7ff" opacity="0.7"/>
+      <circle cx="56" cy="-110" r="1.6" fill="#7ad7ff" opacity="0.45"/>
+    </g>
+  </g>
+</svg>

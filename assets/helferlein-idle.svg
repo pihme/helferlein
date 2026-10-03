@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 300" role="img" aria-labelledby="title">
+  <title id="title">Helferlein idle</title>
+  <defs>
+    <linearGradient id="shell" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#e7eef6"/>
+      <stop offset="1" stop-color="#b7c6d6"/>
+    </linearGradient>
+    <linearGradient id="arm" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#d5e0ec"/>
+      <stop offset="0.5" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#aebfd0"/>
+    </linearGradient>
+    <radialGradient id="eye" cx="40%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#f4fcff"/>
+      <stop offset="0.45" stop-color="#7ad7ff"/>
+      <stop offset="1" stop-color="#1aa3d6"/>
+    </radialGradient>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="10" stdDeviation="6" flood-color="#1b2430" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+  <rect width="220" height="300" fill="#f6f3ec"/>
+  <g transform="translate(110 150)">
+    <ellipse cx="0" cy="128" rx="50" ry="8" fill="#1b2430" opacity="0.12"/>
+    <g filter="url(#soft)">
+      <g transform="rotate(16 -62 20)">
+        <rect x="-78" y="-8" width="16" height="78" rx="8" fill="url(#arm)"/>
+      </g>
+      <g transform="rotate(-14 62 16)">
+        <rect x="62" y="-6" width="16" height="78" rx="8" fill="url(#arm)"/>
+      </g>
+      <ellipse cx="0" cy="36" rx="38" ry="34" fill="url(#shell)"/>
+      <ellipse cx="0" cy="-62" rx="44" ry="56" fill="url(#shell)"/>
+      <ellipse cx="-14" cy="-92" rx="14" ry="18" fill="#ffffff" opacity="0.5"/>
+      <rect x="-28" y="-74" width="56" height="40" rx="16" fill="#1a1e27"/>
+      <path d="M-16 -66 q6 -8 14 0" fill="none" stroke="#9adfff" stroke-width="2" stroke-linecap="round"/>
+      <path d="M4 -66 q6 -8 14 0" fill="none" stroke="#9adfff" stroke-width="2" stroke-linecap="round"/>
+      <ellipse cx="-12" cy="-56" rx="5" ry="6.5" fill="url(#eye)"/>
+      <ellipse cx="12" cy="-56" rx="5" ry="6.5" fill="url(#eye)"/>
+      <path d="M-8 -46 q8 8 16 0" fill="none" stroke="#7ad7ff" stroke-width="2" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

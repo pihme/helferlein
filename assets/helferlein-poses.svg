@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 620" role="img" aria-labelledby="title desc">
+  <title id="title">Helferlein pose sheet</title>
+  <desc id="desc">Reference sketches: sealed lamp, idle, thinking, and a placeholder applied look. Not a final design.</desc>
+  <defs>
+    <linearGradient id="shell" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.55" stop-color="#e7eef6"/>
+      <stop offset="1" stop-color="#b7c6d6"/>
+    </linearGradient>
+    <linearGradient id="shell-done" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fbfffd"/>
+      <stop offset="0.45" stop-color="#d9f3e6"/>
+      <stop offset="1" stop-color="#8fcfb0"/>
+    </linearGradient>
+    <linearGradient id="arm" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#d5e0ec"/>
+      <stop offset="0.5" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#aebfd0"/>
+    </linearGradient>
+    <radialGradient id="eye" cx="40%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#f4fcff"/>
+      <stop offset="0.45" stop-color="#7ad7ff"/>
+      <stop offset="1" stop-color="#1aa3d6"/>
+    </radialGradient>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="10" stdDeviation="6" flood-color="#1b2430" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+  <rect width="1080" height="620" fill="#f6f3ec"/>
+  <text x="48" y="48" fill="#1c2430" font-family="ui-sans-serif, system-ui, sans-serif" font-size="28" font-weight="650">Helferlein</text>
+  <text x="48" y="74" fill="#5c6774" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14">Reference sketches. Not the design.</text>
+
+  <g transform="translate(150 300)">
+    <ellipse cx="0" cy="118" rx="46" ry="8" fill="#1b2430" opacity="0.12"/>
+    <g filter="url(#soft)">
+      <ellipse cx="0" cy="0" rx="54" ry="72" fill="url(#shell)"/>
+      <ellipse cx="-16" cy="-28" rx="16" ry="22" fill="#ffffff" opacity="0.55"/>
+      <rect x="-24" y="-6" width="48" height="18" rx="9" fill="#1a1e27"/>
+      <ellipse cx="-10" cy="-1" rx="3.2" ry="3.2" fill="url(#eye)"/>
+      <ellipse cx="10" cy="-1" rx="3.2" ry="3.2" fill="url(#eye)"/>
+    </g>
+  </g>
+  <text x="150" y="470" text-anchor="middle" fill="#1c2430" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="650">Lamp</text>
+  <text x="150" y="492" text-anchor="middle" fill="#5c6774" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Closed. The button.</text>
+
+  <g transform="translate(410 318)">
+    <ellipse cx="0" cy="128" rx="50" ry="8" fill="#1b2430" opacity="0.12"/>
+    <g filter="url(#soft)">
+      <g transform="rotate(16 -62 20)">
+        <rect x="-78" y="-8" width="16" height="78" rx="8" fill="url(#arm)"/>
+      </g>
+      <g transform="rotate(-14 62 16)">
+        <rect x="62" y="-6" width="16" height="78" rx="8" fill="url(#arm)"/>
+      </g>
+      <ellipse cx="0" cy="36" rx="38" ry="34" fill="url(#shell)"/>
+      <ellipse cx="0" cy="-62" rx="44" ry="56" fill="url(#shell)"/>
+      <ellipse cx="-14" cy="-92" rx="14" ry="18" fill="#ffffff" opacity="0.5"/>
+      <rect x="-28" y="-74" width="56" height="40" rx="16" fill="#1a1e27"/>
+      <path d="M-16 -66 q6 -8 14 0" fill="none" stroke="#9adfff" stroke-width="2" stroke-linecap="round"/>
+      <path d="M4 -66 q6 -8 14 0" fill="none" stroke="#9adfff" stroke-width="2" stroke-linecap="round"/>
+      <ellipse cx="-12" cy="-56" rx="5" ry="6.5" fill="url(#eye)"/>
+      <ellipse cx="12" cy="-56" rx="5" ry="6.5" fill="url(#eye)"/>
+      <path d="M-8 -46 q8 8 16 0" fill="none" stroke="#7ad7ff" stroke-width="2" stroke-linecap="round"/>
+    </g>
+  </g>
+  <text x="410" y="500" text-anchor="middle" fill="#1c2430" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="650">Idle</text>
+  <text x="410" y="522" text-anchor="middle" fill="#5c6774" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Hovering.</text>
+
+  <g transform="translate(670 318)">
+    <ellipse cx="0" cy="128" rx="50" ry="8" fill="#1b2430" opacity="0.12"/>
+    <g filter="url(#soft)">
+      <g transform="rotate(28 -62 10)">
+        <rect x="-78" y="-8" width="16" height="72" rx="8" fill="url(#arm)"/>
+      </g>
+      <g transform="rotate(-58 40 -20)">
+        <rect x="48" y="-46" width="16" height="70" rx="8" fill="url(#arm)"/>
+      </g>
+      <ellipse cx="0" cy="36" rx="38" ry="34" fill="url(#shell)"/>
+      <ellipse cx="0" cy="-62" rx="44" ry="56" fill="url(#shell)"/>
+      <ellipse cx="-14" cy="-92" rx="14" ry="18" fill="#ffffff" opacity="0.5"/>
+      <rect x="-28" y="-74" width="56" height="40" rx="16" fill="#1a1e27"/>
+      <path d="M-18 -70 q8 -4 14 2" fill="none" stroke="#9adfff" stroke-width="2" stroke-linecap="round"/>
+      <path d="M2 -68 q8 -4 14 2" fill="none" stroke="#9adfff" stroke-width="2" stroke-linecap="round"/>
+      <ellipse cx="-8" cy="-62" rx="4.2" ry="5" fill="url(#eye)"/>
+      <ellipse cx="14" cy="-64" rx="4.2" ry="5" fill="url(#eye)"/>
+      <path d="M-8 -46 h16" fill="none" stroke="#7ad7ff" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="36" cy="-132" r="3" fill="#7ad7ff"/>
+      <circle cx="48" cy="-122" r="2.2" fill="#7ad7ff" opacity="0.7"/>
+      <circle cx="56" cy="-110" r="1.6" fill="#7ad7ff" opacity="0.45"/>
+    </g>
+  </g>
+  <text x="670" y="500" text-anchor="middle" fill="#1c2430" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="650">Thinking</text>
+  <text x="670" y="522" text-anchor="middle" fill="#5c6774" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Working.</text>
+
+  <g transform="translate(930 318)">
+    <ellipse cx="0" cy="128" rx="50" ry="8" fill="#1b2430" opacity="0.12"/>
+    <g filter="url(#soft)">
+      <g transform="rotate(-24 -70 8)">
+        <rect x="-86" y="-28" width="16" height="78" rx="8" fill="url(#arm)"/>
+      </g>
+      <g transform="rotate(22 70 8)">
+        <rect x="70" y="-28" width="16" height="78" rx="8" fill="url(#arm)"/>
+      </g>
+      <ellipse cx="0" cy="36" rx="38" ry="34" fill="url(#shell-done)"/>
+      <path d="M-20 18 q20 10 40 2 q-8 22 -36 16 z" fill="#1f7a4d"/>
+      <ellipse cx="0" cy="-62" rx="44" ry="56" fill="url(#shell-done)"/>
+      <ellipse cx="-14" cy="-92" rx="14" ry="18" fill="#ffffff" opacity="0.45"/>
+      <rect x="-28" y="-74" width="56" height="40" rx="16" fill="#143026"/>
+      <path d="M-16 -58 q6 8 12 0" fill="none" stroke="#b6f3c8" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M4 -58 q6 8 12 0" fill="none" stroke="#b6f3c8" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M-10 -46 q10 10 20 0" fill="none" stroke="#7ddeb0" stroke-width="2" stroke-linecap="round"/>
+    </g>
+  </g>
+  <text x="930" y="500" text-anchor="middle" fill="#1c2430" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="650">Applied</text>
+  <text x="930" y="522" text-anchor="middle" fill="#5c6774" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Placeholder other look.</text>
+</svg>

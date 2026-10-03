@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>PROTOTYPE — Helferlein</title>
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #f4f1ea;
+      color: #1c2430;
+      font: 15px/1.4 ui-sans-serif, system-ui, sans-serif;
+      padding: 1rem 1rem 1.5rem;
+    }
+    h1 { font-size: 1.2rem; margin: 0 0 .2rem; }
+    .mark { font-size: .7rem; letter-spacing: .06em; background: #1c2430; color: #fff; border-radius: 999px; padding: .1rem .45rem; }
+    .question { max-width: 62rem; color: #3d4754; margin: .2rem 0 .55rem; }
+    .stages { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; }
+    .stage { position: relative; height: 23rem; background: #fffcf8; border-radius: .8rem; overflow: hidden; }
+    .stage canvas { width: 100%; height: 100%; display: block; }
+    .stage .label { position: absolute; left: .6rem; top: .45rem; margin: 0; font-size: .8rem; font-weight: 650; }
+    .panel {
+      display: none; position: absolute; right: 0; bottom: 0; width: 52%; height: 46%;
+      background: #f4f1ea; border-top: 1px solid #e4ddd0; border-left: 1px solid #e4ddd0;
+      border-top-left-radius: .8rem; box-shadow: -8px -8px 20px rgba(0,0,0,.06);
+      font-weight: 650; padding: .6rem .7rem;
+    }
+    .panel.show { display: block; }
+    .state { margin: .35rem 0 .1rem; color: #1c2430; font-size: .9rem; }
+    .state b { font-weight: 650; }
+    .note { margin: 0; color: #5c6774; font-size: .85rem; }
+    .attrs {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(9rem, 1fr));
+      gap: .35rem .7rem;
+      margin: .45rem 0 .15rem;
+      max-width: 72rem;
+    }
+    .attrs label { display: flex; flex-direction: column; gap: .15rem; font-size: .75rem; font-weight: 650; color: #5c6774; }
+    .attrs select, .attrs input[type="range"] {
+      font: inherit; color: #1c2430; background: #fff; border: 1px solid #e4ddd0; border-radius: .45rem; padding: .28rem .4rem;
+    }
+    .attrs input[type="range"] { padding: 0; accent-color: #1c2430; }
+    .row { display: flex; flex-wrap: wrap; gap: .4rem; margin: .45rem 0 .25rem; }
+    button { border: 0; border-radius: 999px; padding: .4rem .75rem; background: #1c2430; color: #fff; cursor: pointer; }
+    button[disabled] { opacity: .35; cursor: default; }
+    button.step-next { background: #1f7a4d; }
+    .tabs button { background: #e7e1d6; color: #1c2430; }
+    .tabs button[aria-selected="true"] { background: #1c2430; color: #fff; }
+    #missing { display: none; background: #fff; border-radius: .6rem; padding: .8rem; }
+    .catalog { margin-top: 1.15rem; max-width: 76rem; }
+    .catalog h2 { font-size: .95rem; margin: 1.05rem 0 .4rem; }
+    .catalog .sheet { position: relative; background: #fffcf8; border-radius: .7rem; overflow: hidden; }
+    .catalog .sheet canvas { width: 100%; display: block; }
+    .catalog .names {
+      position: absolute; inset: 0; display: grid; pointer-events: none;
+    }
+    .catalog .names span {
+      align-self: end;
+      padding: .9rem .4rem .28rem;
+      font-size: .72rem;
+      font-weight: 650;
+      background: linear-gradient(transparent, rgba(255,252,248,.94) 58%);
+    }
+    @media (max-width: 900px) { .stages { grid-template-columns: 1fr; } .stage { height: 18rem; } .attrs { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <p><span class="mark">PROTOTYPE</span> Throwaway. Not the product.</p>
+  <h1>Helferlein</h1>
+  <p class="question">Question: does a rolled look still read as one character, and do the five motions read? A, B, and C are the same moment, side by side. The order is summoned, idle, working, applied, dismissed. The buttons below catch up if you skip ahead. That catch-up is only in this demo. Applied turns the figure once; the new look appears while its back faces you. A roll changes the color and one or two other attributes. Color numbers are provisional. The lists are ideas.</p>
+  <p id="missing">This view needs the local three.min.js next to this file.</p>
+  <div class="stages" id="stages">
+    <div class="stage" data-view="A"><p class="label">A · Reference android</p><canvas></canvas></div>
+    <div class="stage" data-view="B"><p class="label">B · Catalog roll</p><canvas></canvas></div>
+    <div class="stage" data-view="C"><p class="label">C · Corner, one integration</p><div class="panel" id="panel">One possible panel</div><canvas></canvas></div>
+  </div>
+  <p class="state" id="state"></p>
+  <div class="attrs" id="attrs"></div>
+  <p class="note" id="last"></p>
+  <div class="row" id="free"></div>
+  <div class="row tabs" id="tabs"></div>
+  <p class="note" id="scenario"></p>
+  <div class="row" id="steps"></div>
+  <script src="three.min.js"></script>
+  <script>
+    const SHAPES = ["Android","Peanut","Pear","Egg","Teardrop","Snowman","Lightbulb","Rocket"];
+    const EXPRESSIONS = ["Neutral","Resting","Curious","Focused","Pleased","Surprised","Determined","Wink"];
+    const ROLL_EXPRESSIONS = ["Neutral","Curious","Pleased","Surprised","Wink"];
+    const CLOTHES = ["None","Pleated shirt","Blouse","T-shirt","Turtleneck","Striped shirt","Suit"];
+    const TOOLS = ["None","Wrench","Pencil","Magnifying glass","Brush","Clipboard","Watering can","Telescope","Hammer","Saw","Fairy wand","Scissors","Tongs"];
+    const EXTRAS = ["None","Top hat","Beret","Sombrero","Pointed hat","Chef's hat","Crown","Bunny ears","Cat ears","Dog ears","Antenna","Halo","Small wings","Antlers","Propeller"];
+    const COLOR_ROLES = [
+      ["body", "Body", 0.16, 0.9],
+      ["face", "Face", 0.05, 0.16],
+      ["features", "Features", 0.9, 0.62],
+      ["clothes", "Clothes", 0.6, 0.5],
+      ["accessories", "Accessories", 0.7, 0.5],
+      ["tool", "Tool", 0.7, 0.46]
+    ];
+    function colorFields(from) {
+      const out = {};
+      for (const [key, , s, l] of COLOR_ROLES) {
+        out[key + "S"] = from && from[key + "S"] != null ? from[key + "S"] : s;
+        out[key + "L"] = from && from[key + "L"] != null ? from[key + "L"] : l;
+      }
+      return out;
+    }
+    const SCENARIOS = [
+      { id: "shown", name: "Work shows up", blurb: "Summon, idle, working, applied. The new look appears while the back faces you. Then dismiss.", steps: [["summon","Summon"],["working","Working"],["applied","Applied"],["dismiss","Dismiss"]] },
+      { id: "none", name: "Nothing to show", blurb: "Work finishes without Applied. The look stays.", steps: [["summon","Summon"],["working","Working"],["idle","Idle"]] },
+      { id: "early", name: "Too early", blurb: "Applied before working does nothing. So does Applied while dismissed.", steps: [["applied","Applied"]] },
+      { id: "twice", name: "Two rolls", blurb: "Each applied changes the hue and one or two other attributes.", steps: [["summon","Summon"],["working","Working"],["applied","Applied"],["working","Working again"],["applied","Applied again"],["dismiss","Dismiss"]] }
+    ];
+
+    function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
+    function temperature(hue) {
+      if (hue <= 70 || hue >= 330) return "warm";
+      if (hue >= 150 && hue <= 260) return "cool";
+      return "green band, cut at 150, provisional";
+    }
+    const GARMENTS = CLOTHES.filter(name => name !== "None");
+    const IMPLEMENTS = TOOLS.filter(name => name !== "None");
+    const GROWN = EXTRAS.filter(name => name !== "None");
+    const ROLL_FIELDS = ["shape", "expression", "clothes", "tool", "extra"];
+    // Gain odds stay 1/3, 1/2, 1/10. hold is how many later rolls a new piece stays put.
+    // drought forces the next draw after that many rolls spent empty. strip is the chance a later draw clears it.
+    const PRESENCE = {
+      clothes: { gain: 1 / 3, hold: 2, strip: 1 / 6, drought: 4, list: GARMENTS },
+      tool: { gain: 1 / 2, hold: 1, strip: 1 / 4, drought: 3, list: IMPLEMENTS },
+      extra: { gain: 1 / 10, hold: 6, strip: 1 / 8, drought: 0, list: GROWN }
+    };
+    function other(list, current) {
+      const choices = list.filter(item => item !== current);
+      return pick(choices.length ? choices : list);
+    }
+    function defaultLook() {
+      return {
+        hue: 210,
+        ...colorFields(null),
+        shape: "Android",
+        expression: "Neutral",
+        clothes: "None",
+        tool: "None",
+        extra: "None"
+      };
+    }
+    // Hue always moves by at least 90°. One or two other fields are drawn.
+    // A field changed last roll sits out. A new piece locks for PRESENCE.hold further rolls.
+    function nextHue(hue) {
+      const min = 90;
+      const delta = min + Math.floor(Math.random() * (360 - 2 * min + 1));
+      return (hue + delta) % 360;
+    }
+    function blankMemory() {
+      return {
+        cooled: [],
+        hold: { clothes: 0, tool: 0, extra: 0 },
+        absent: { clothes: 0, tool: 0, extra: 0 }
+      };
+    }
+    function openFields(memory, ignoreCooled) {
+      const cooled = ignoreCooled ? new Set() : new Set(memory.cooled);
+      return ROLL_FIELDS.filter(key => {
+        if (PRESENCE[key] && memory.hold[key] > 0) return false;
+        return !cooled.has(key);
+      });
+    }
+    function eligibleFields(memory) {
+      const ready = openFields(memory, false);
+      return ready.length ? ready : openFields(memory, true);
+    }
+    function drawFields(pool) {
+      if (!pool.length) return [];
+      const count = Math.min(pool.length, Math.random() < 0.5 ? 1 : 2);
+      const bag = pool.slice();
+      const drawn = [];
+      while (drawn.length < count) drawn.push(bag.splice(Math.floor(Math.random() * bag.length), 1)[0]);
+      return drawn;
+    }
+    function writeField(next, field, from, memory, force) {
+      if (field === "shape") {
+        next.shape = other(SHAPES, from.shape);
+        return;
+      }
+      if (field === "expression") {
+        next.expression = other(ROLL_EXPRESSIONS, from.expression);
+        return;
+      }
+      const spec = PRESENCE[field];
+      const current = from[field];
+      if (current === "None") {
+        const due = spec.drought > 0 && memory.absent[field] >= spec.drought;
+        const hit = force || due || Math.random() < spec.gain;
+        next[field] = hit ? pick(spec.list) : "None";
+        return;
+      }
+      if (!force && Math.random() < spec.strip) {
+        next[field] = "None";
+        return;
+      }
+      next[field] = other(spec.list, current);
+    }
+    function rollOnce(from, memory, missed) {
+      const next = { ...from, hue: nextHue(from.hue) };
+      for (const field of drawFields(eligibleFields(memory))) {
+        if (missed && missed.has(field)) continue;
+        writeField(next, field, from, memory, false);
+        // An empty slot flips its gain coin once per roll. A miss is not re-rolled.
+        if (missed && PRESENCE[field] && from[field] === "None" && next[field] === "None") missed.add(field);
+      }
+      return next;
+    }
+    function changedFields(from, next) {
+      return ROLL_FIELDS.filter(key => next[key] !== from[key]);
+    }
+    function memoryAfter(from, next, memory) {
+      const hold = { clothes: 0, tool: 0, extra: 0 };
+      const absent = { clothes: 0, tool: 0, extra: 0 };
+      for (const field of Object.keys(PRESENCE)) {
+        let left = Math.max(0, memory.hold[field] - 1);
+        if (next[field] === "None") absent[field] = (from[field] === "None" ? memory.absent[field] : 0) + 1;
+        else if (from[field] === "None") left = PRESENCE[field].hold;
+        hold[field] = left;
+      }
+      return { cooled: changedFields(from, next), hold, absent };
+    }
+    // Last resort must change something visible. An empty extra is not minted just to satisfy that.
+    function fallbackField(from, memory) {
+      const preferred = eligibleFields(memory).find(field => field !== "extra" || from.extra !== "None");
+      return preferred || "shape";
+    }
+    function rollFrom(from, memory) {
+      const mem = memory || blankMemory();
+      const missed = new Set();
+      const moved = (next) => changedFields(from, next).length > 0;
+      let next = rollOnce(from, mem, missed);
+      for (let i = 0; i < 8 && !moved(next); i++) next = rollOnce(from, mem, missed);
+      if (!moved(next)) writeField(next, fallbackField(from, mem), from, mem, true);
+      return { look: next, memory: memoryAfter(from, next, mem) };
+    }
+    // A hand edit drops that slot's lock and its empty streak.
+    function loosen(memory, key) {
+      if (!PRESENCE[key]) return memory;
+      return {
+        cooled: memory.cooled.slice(),
+        hold: { ...memory.hold, [key]: 0 },
+        absent: { ...memory.absent, [key]: 0 }
+      };
+    }
+    function fresh() {
+      return {
+        presence: "resting", activity: "idle", look: defaultLook(), memory: blankMemory(),
+        pending: null, pendingMemory: null, turning: false, last: "Dismissed.", changed: ""
+      };
+    }
+    function reduce(state, action) {
+      const present = state.presence === "present";
+      if (action === "summon") {
+        if (present) return { ...state, last: "Already here. No second swoop.", changed: "" };
+        return { ...state, presence: "present", activity: "summoned", last: "Summoned.", changed: "presence" };
+      }
+      if (action === "working") {
+        if (!present) return { ...state, last: "Dismissed. Summon first.", changed: "" };
+        if (state.turning) return { ...state, last: "Already turning.", changed: "" };
+        if (state.activity === "working") return { ...state, last: "Already working.", changed: "" };
+        return { ...state, activity: "working", last: "Working. The face pulses between focused and determined.", changed: "activity" };
+      }
+      if (action === "idle") {
+        if (!present) return { ...state, last: "Already dismissed.", changed: "" };
+        if (state.turning) return { ...state, last: "The turn is still going.", changed: "" };
+        if (state.activity === "summoned") return { ...state, last: "Still arriving.", changed: "" };
+        if (state.activity !== "working") return { ...state, last: "Already idle.", changed: "" };
+        return { ...state, activity: "idle", last: "Idle. Look kept.", changed: "activity" };
+      }
+      if (action === "applied") {
+        if (!present) return { ...state, last: "Applied while dismissed does nothing.", changed: "" };
+        if (state.turning) return { ...state, last: "Already turning.", changed: "" };
+        if (state.activity !== "working") return { ...state, last: "Applied follows working.", changed: "" };
+        const roll = rollFrom(state.look, state.memory);
+        return { ...state, activity: "idle", turning: true, pending: roll.look, pendingMemory: roll.memory, last: "Applied. The new look comes around while the back faces you.", changed: "look" };
+      }
+      if (action === "dismiss") {
+        if (!present) return { ...state, last: "Already dismissed.", changed: "" };
+        return { ...state, presence: "resting", activity: "idle", turning: false, pending: null, pendingMemory: null, last: "Dismissed. Folds back. Look kept.", changed: "presence" };
+      }
+      return state;
+    }
+
+    if (!window.THREE) {
+      document.getElementById("missing").style.display = "block";
+      document.getElementById("stages").style.display = "none";
+    } else {
+      const THREE = window.THREE;
+      let state = fresh();
+      let scenario = null;
+      let step = 0;
+      let spin = null;
+
+      function colorOf(look, role) {
+        const fallback = COLOR_ROLES.find(([key]) => key === role);
+        const s = look[role + "S"] != null ? look[role + "S"] : fallback[2];
+        const l = look[role + "L"] != null ? look[role + "L"] : fallback[3];
+        return new THREE.Color().setHSL(((look.hue % 360) + 360) % 360 / 360, s, l);
+      }
+      function shadeColor(look, role, dl) {
+        const hsl = { h: 0, s: 0, l: 0 };
+        colorOf(look, role).getHSL(hsl);
+        return new THREE.Color().setHSL(hsl.h, hsl.s, Math.min(0.84, Math.max(0.08, hsl.l + dl)));
+      }
+      function paint(look, role, extra) {
+        const body = role === "body";
+        const tool = role === "tool";
+        return new THREE.MeshPhysicalMaterial(Object.assign({
+          color: colorOf(look, role),
+          roughness: body ? 0.24 : tool ? 0.42 : 0.5,
+          metalness: tool ? 0.32 : 0.02,
+          clearcoat: body ? 0.72 : 0.1,
+          clearcoatRoughness: 0.26,
+          envMapIntensity: body ? 0.8 : 0.28
+        }, extra || {}));
+      }
+      function solid(geo, material) { return new THREE.Mesh(geo, material); }
+      function sphere(r, material, seg) {
+        return solid(new THREE.SphereGeometry(r, seg || 28, Math.round((seg || 28) * 0.72)), material);
+      }
+      function lathe(pairs, material) {
+        return solid(new THREE.LatheGeometry(pairs.map(([x, y]) => new THREE.Vector2(x, y)), 52), material);
+      }
+      function at(mesh, x, y, z) { mesh.position.set(x, y, z); return mesh; }
+
+      function shapeBody(shape, material, look) {
+        const g = new THREE.Group();
+        const add = (mesh, x, y, z) => { at(mesh, x, y, z); g.add(mesh); return mesh; };
+        let place = { faceY: 1.72, faceZ: 0.4, faceR: 0.42, headTop: 2.28, shoulderY: 1.16, bodyR: 0.4 };
+        if (shape === "Peanut") {
+          g.add(lathe([
+            [0.01, 0.30], [0.24, 0.40], [0.42, 0.62], [0.46, 0.88], [0.40, 1.10],
+            [0.26, 1.26], [0.30, 1.42], [0.44, 1.64], [0.46, 1.84], [0.28, 2.02], [0.01, 2.10]
+          ], material));
+          place = { faceY: 1.76, faceZ: 0.38, faceR: 0.42, headTop: 2.06, shoulderY: 1.22, bodyR: 0.44 };
+        } else if (shape === "Pear") {
+          g.add(lathe([
+            [0.01, 0.32], [0.30, 0.42], [0.50, 0.70], [0.54, 1.00], [0.40, 1.30],
+            [0.24, 1.52], [0.30, 1.70], [0.20, 1.86], [0.01, 1.94]
+          ], material));
+          place = { faceY: 1.68, faceZ: 0.24, faceR: 0.26, headTop: 1.94, shoulderY: 1.12, bodyR: 0.5 };
+        } else if (shape === "Egg") {
+          const bean = add(sphere(0.55, material, 36), 0, 1.22, 0);
+          bean.scale.set(0.82, 1.22, 0.74);
+          place = { faceY: 1.42, faceZ: 0.34, faceR: 0.38, headTop: 1.86, shoulderY: 1.12, bodyR: 0.42 };
+        } else if (shape === "Teardrop") {
+          g.add(lathe([
+            [0.01, 0.32], [0.26, 0.42], [0.46, 0.66], [0.50, 0.98], [0.38, 1.30],
+            [0.24, 1.55], [0.10, 1.82], [0.01, 2.02]
+          ], material));
+          place = { faceY: 1.42, faceZ: 0.32, faceR: 0.32, headTop: 2.0, shoulderY: 1.1, bodyR: 0.46 };
+        } else if (shape === "Snowman") {
+          add(sphere(0.50, material, 32), 0, 0.62, 0);
+          add(sphere(0.36, material, 32), 0, 1.32, 0);
+          add(sphere(0.24, material, 32), 0, 1.82, 0);
+          place = { faceY: 1.82, faceZ: 0.28, faceR: 0.22, headTop: 2.06, shoulderY: 1.32, bodyR: 0.36 };
+        } else if (shape === "Lightbulb") {
+          const hot = paint(look, "features", { emissive: colorOf(look, "features"), emissiveIntensity: 1.6 });
+          const glass = paint(look, "body", { transparent: true, opacity: 0.22, roughness: 0.04, clearcoat: 1, depthWrite: false, side: THREE.DoubleSide });
+          const filament = add(solid(new THREE.TorusGeometry(0.12, 0.028, 8, 18), hot), 0, 1.62, 0);
+          filament.renderOrder = 1;
+          const bulb = lathe([
+            [0.01, 1.02], [0.12, 1.08], [0.20, 1.22], [0.32, 1.44],
+            [0.36, 1.66], [0.32, 1.88], [0.18, 2.04], [0.01, 2.14]
+          ], glass);
+          bulb.renderOrder = 2;
+          g.add(bulb);
+          add(solid(new THREE.CylinderGeometry(0.15, 0.15, 0.27, 20), material), 0, 0.97, 0);
+          place = { faceY: 1.64, faceZ: 0.30, faceR: 0.30, headTop: 2.14, shoulderY: 1.40, bodyR: 0.30 };
+        } else if (shape === "Rocket") {
+          add(solid(new THREE.CylinderGeometry(0.26, 0.30, 0.83, 32), material), 0, 1.285, 0);
+          const nose = solid(new THREE.ConeGeometry(0.268, 0.46, 32, 1, true), material);
+          nose.position.y = 1.91;
+          g.add(nose);
+          for (const a of [0.3, 2.4, 4.5]) {
+            const fin = solid(new THREE.BoxGeometry(0.2, 0.24, 0.04), material);
+            fin.position.set(Math.cos(a) * 0.4, 0.98, Math.sin(a) * 0.4);
+            fin.rotation.y = Math.PI / 2 - a;
+            g.add(fin);
+          }
+          place = { faceY: 1.60, faceZ: 0.26, faceR: 0.26, headTop: 2.14, shoulderY: 1.18, bodyR: 0.32 };
+        } else {
+          g.add(lathe([
+            [0.01, 0.42], [0.20, 0.50], [0.34, 0.68], [0.40, 0.92], [0.36, 1.14], [0.34, 1.32],
+            [0.40, 1.52], [0.46, 1.74], [0.44, 1.96], [0.32, 2.16], [0.14, 2.30], [0.01, 2.36]
+          ], material));
+          place = { faceY: 1.74, faceZ: 0.4, faceR: 0.44, headTop: 2.32, shoulderY: 1.16, bodyR: 0.4 };
+        }
+        return { group: g, place };
+      }
+
+      function addFace(g, look, place) {
+        const y = place.faceY;
+        const z = place.faceZ;
+        const r = place.faceR;
+        const faceMat = paint(look, "face", { roughness: 0.55, clearcoat: 0.04, envMapIntensity: 0.15 });
+        const eyeMat = paint(look, "features", { emissive: colorOf(look, "features"), emissiveIntensity: 0.28, roughness: 0.35 });
+        const visor = solid(new THREE.SphereGeometry(1, 32, 24), faceMat);
+        visor.scale.set(r * 0.78, r * 0.46, r * 0.24);
+        visor.position.set(0, y, z);
+        g.add(visor);
+        const expr = look.expression;
+        const spread = r * 0.34;
+        const eyeR = r * (expr === "Surprised" ? 0.15 : 0.11);
+        const eyeY = y + (expr === "Curious" ? r * 0.08 : expr === "Focused" ? -r * 0.02 : 0);
+        const eyeZ = z + r * 0.26;
+        const shut = (mode, x) => {
+          if (mode === "pleased") {
+            const arc = solid(new THREE.TorusGeometry(eyeR, eyeR * 0.28, 6, 14, Math.PI), eyeMat);
+            arc.position.set(x, eyeY, eyeZ);
+            g.add(arc);
+            return;
+          }
+          const lid = solid(new THREE.CapsuleGeometry(eyeR * 0.32, eyeR * 1.15, 3, 6), eyeMat);
+          lid.rotation.z = Math.PI / 2;
+          lid.position.set(x, eyeY, eyeZ);
+          g.add(lid);
+        };
+        const open = (mode, x) => {
+          const eyeball = sphere(eyeR, eyeMat, 16);
+          if (mode === "focus") eyeball.scale.y = 0.55;
+          eyeball.position.set(x, eyeY, eyeZ);
+          g.add(eyeball);
+          const glint = solid(new THREE.SphereGeometry(eyeR * 0.28, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+          glint.position.set(x - eyeR * 0.32, eyeY + eyeR * 0.32, eyeZ + eyeR * 0.72);
+          g.add(glint);
+        };
+        const mode = (side) => {
+          if (expr === "Resting") return "shut";
+          if (expr === "Pleased") return "pleased";
+          if (expr === "Wink" && side < 0) return "shut";
+          if (expr === "Focused") return "focus";
+          return "open";
+        };
+        [-1, 1].forEach(side => {
+          const x = side * spread + (expr === "Curious" && side > 0 ? r * 0.03 : 0);
+          const m = mode(side);
+          if (m === "open" || m === "focus") open(m, x); else shut(m, x);
+        });
+        if (expr === "Determined" || expr === "Curious") {
+          [-1, 1].forEach(side => {
+            const brow = solid(new THREE.BoxGeometry(r * 0.24, r * 0.04, r * 0.03), eyeMat);
+            brow.position.set(side * spread, eyeY + r * 0.22 + (expr === "Curious" && side < 0 ? r * 0.07 : 0), eyeZ);
+            brow.rotation.z = side * (expr === "Determined" ? -0.45 : -0.2);
+            g.add(brow);
+          });
+        }
+        if (expr === "Pleased" || expr === "Neutral" || expr === "Surprised") {
+          const mouth = solid(new THREE.TorusGeometry(r * (expr === "Surprised" ? 0.07 : 0.1), r * 0.028, 6, 14, expr === "Surprised" ? Math.PI * 2 : Math.PI), eyeMat);
+          mouth.position.set(0, y - r * 0.24, eyeZ);
+          if (expr !== "Surprised") mouth.rotation.z = Math.PI;
+          g.add(mouth);
+        }
+      }
+
+      // One extra per roll. Worn pieces use the accessories role. Grown pieces use the features role.
+      function addExtra(g, look, place) {
+        const name = look.extra;
+        if (!name || name === "None") return;
+        const wornNames = { "Top hat": 1, "Beret": 1, "Sombrero": 1, "Pointed hat": 1, "Chef's hat": 1, "Crown": 1 };
+        const role = wornNames[name] ? "accessories" : "features";
+        const m = paint(look, role, role === "accessories" ? { side: THREE.DoubleSide } : null);
+        const band = paint(look, role, { color: shadeColor(look, role, -0.16), side: THREE.DoubleSide });
+        const lite = paint(look, role, { color: shadeColor(look, role, 0.14), side: THREE.DoubleSide });
+        const faceMat = paint(look, "face");
+        const hot = paint(look, "features", { emissive: colorOf(look, "features"), emissiveIntensity: 0.7 });
+        const s = Math.max(0.65, place.faceR / 0.42);
+        const put = (mesh, x, y, z) => { mesh.position.set(x, y, z); g.add(mesh); return mesh; };
+        const top = place.headTop;
+        const y = place.faceY;
+        const r = place.faceR;
+        if (name === "Top hat") {
+          put(solid(new THREE.CylinderGeometry(0.28 * s, 0.28 * s, 0.035, 24), m), 0, top - 0.01, 0);
+          put(solid(new THREE.CylinderGeometry(0.125 * s, 0.135 * s, 0.24 * s, 20), m), 0, top + 0.11 * s, 0);
+          put(solid(new THREE.CylinderGeometry(0.142 * s, 0.142 * s, 0.045 * s, 20), band), 0, top + 0.035 * s, 0);
+        } else if (name === "Beret") {
+          const beret = put(sphere(0.26 * s, m, 20), 0.05 * s, top - 0.045 * s, 0.02);
+          beret.scale.set(1.2, 0.38, 1.05);
+          beret.rotation.z = -0.5;
+          put(sphere(0.04 * s, band, 10), 0.10 * s, top + 0.02 * s, 0.04);
+        } else if (name === "Sombrero") {
+          put(lathe([
+            [0.16 * s, 0.03 * s], [0.36 * s, 0.008 * s], [0.50 * s, 0.02 * s], [0.58 * s, 0.06 * s],
+            [0.64 * s, 0.11 * s], [0.62 * s, 0.14 * s], [0.52 * s, 0.05 * s], [0.32 * s, 0],
+            [0.16 * s, 0.012 * s], [0.16 * s, 0.03 * s]
+          ], m), 0, top - 0.10 * s, 0);
+          put(solid(new THREE.CylinderGeometry(0.155 * s, 0.17 * s, 0.18 * s, 20), m), 0, top - 0.01 * s, 0);
+          const dome = put(sphere(0.155 * s, m, 22), 0, top + 0.08 * s, 0);
+          dome.scale.y = 0.72;
+          put(solid(new THREE.CylinderGeometry(0.15 * s, 0.17 * s, 0.045 * s, 20), band), 0, top - 0.04 * s, 0);
+        } else if (name === "Pointed hat") {
+          put(solid(new THREE.CylinderGeometry(0.34 * s, 0.34 * s, 0.03, 24), m), 0, top - 0.01, 0);
+          const cone = put(solid(new THREE.ConeGeometry(0.17 * s, 0.46 * s, 18), m), 0.02 * s, top + 0.16 * s, 0);
+          cone.rotation.z = -0.28;
+          put(solid(new THREE.CylinderGeometry(0.16 * s, 0.18 * s, 0.045 * s, 18), band), 0, top + 0.03 * s, 0);
+          put(sphere(0.026 * s, band, 8), 0, top + 0.035 * s, 0.17 * s);
+        } else if (name === "Chef's hat") {
+          put(solid(new THREE.CylinderGeometry(0.20 * s, 0.21 * s, 0.07 * s, 20), band), 0, top - 0.01, 0);
+          put(solid(new THREE.CylinderGeometry(0.24 * s, 0.20 * s, 0.18 * s, 20), m), 0, top + 0.09 * s, 0);
+          const cap = put(sphere(0.24 * s, m, 18), 0, top + 0.16 * s, 0);
+          cap.scale.y = 0.55;
+        } else if (name === "Crown") {
+          const metal = paint(look, "accessories", { metalness: 0.72, roughness: 0.28 });
+          const seat = top - 0.20 * s;
+          put(solid(new THREE.CylinderGeometry(0.36 * s, 0.39 * s, 0.07 * s, 24), metal), 0, seat, 0);
+          for (let i = 0; i < 5; i++) {
+            const a = (i / 5) * Math.PI * 2;
+            const h = (0.16 + 0.14 * Math.max(0, Math.cos(a))) * s;
+            const peak = solid(new THREE.CylinderGeometry(0.01 * s, 0.08 * s, h, 3), metal);
+            peak.scale.z = 0.38;
+            peak.rotation.y = a;
+            peak.position.set(Math.sin(a) * 0.36 * s, seat + h * 0.45, Math.cos(a) * 0.36 * s);
+            g.add(peak);
+          }
+        } else if (name === "Bunny ears") {
+          [-1, 1].forEach(side => {
+            const lean = side * -0.22;
+            const H = 0.078 * s * 2.55;
+            const rig = new THREE.Group();
+            rig.name = "ear";
+            rig.position.set(side * 0.18 * s + Math.sin(lean) * H, top + 0.14 * s - Math.cos(lean) * H, 0);
+            rig.rotation.z = rig.userData.base = lean;
+            rig.userData.amp = side * -0.5;
+            rig.userData.side = side;
+            g.add(rig);
+            const ear = sphere(0.078 * s, m, 16);
+            ear.scale.set(0.55, 2.55, 0.42);
+            ear.position.y = H;
+            rig.add(ear);
+            const inner = sphere(0.044 * s, faceMat, 12);
+            inner.scale.set(0.36, 1.75, 0.2);
+            const px = side * 0.01 * s, py = 0.02 * s, c = Math.cos(lean), sn = Math.sin(lean);
+            inner.position.set(px * c + py * sn, H - px * sn + py * c, 0.016 * s);
+            rig.add(inner);
+          });
+        } else if (name === "Cat ears") {
+          [-1, 1].forEach(side => {
+            const lean = side * -0.2;
+            const H = 0.15 * s;
+            const rig = new THREE.Group();
+            rig.name = "ear";
+            rig.position.set(side * 0.16 * s + Math.sin(lean) * H, top + 0.02 * s - Math.cos(lean) * H, 0);
+            rig.rotation.y = 0.55;
+            rig.rotation.z = rig.userData.base = lean;
+            rig.userData.amp = side * -0.45;
+            rig.userData.side = side;
+            g.add(rig);
+            const ear = solid(new THREE.ConeGeometry(0.10 * s, 0.30 * s, 4), m);
+            ear.position.y = H;
+            rig.add(ear);
+            const inner = solid(new THREE.ConeGeometry(0.05 * s, 0.16 * s, 4), faceMat);
+            inner.position.set(0, 0.015 * s, 0.04 * s);
+            ear.add(inner);
+          });
+        } else if (name === "Dog ears") {
+          [-1, 1].forEach(side => {
+            const lean = side * 1.15;
+            const H = 0.16 * s * 2.15;
+            const rig = new THREE.Group();
+            rig.name = "ear";
+            rig.position.set(side * (r * 1.02) - Math.sin(lean) * H, y + 0.02 * s + Math.cos(lean) * H, 0.07);
+            rig.rotation.z = rig.userData.base = lean;
+            rig.userData.amp = side * 0.42;
+            rig.userData.side = side;
+            g.add(rig);
+            const ear = sphere(0.16 * s, m, 16);
+            ear.scale.set(0.5, 2.15, 0.34);
+            ear.position.y = -H;
+            rig.add(ear);
+            const inner = sphere(0.095 * s, faceMat, 12);
+            inner.scale.set(0.34, 1.4, 0.18);
+            const px = side * r * 0.14, py = -0.08 * s, c = Math.cos(lean), sn = Math.sin(lean);
+            inner.position.set(px * c + py * sn, -H - px * sn + py * c, 0.04);
+            rig.add(inner);
+          });
+        } else if (name === "Antenna") {
+          const metal = paint(look, "features", { metalness: 0.78, roughness: 0.34, clearcoat: 0.05, side: THREE.DoubleSide });
+          put(solid(new THREE.CylinderGeometry(0.055 * s, 0.07 * s, 0.028 * s, 14), metal), 0, top + 0.006 * s, 0);
+          const antenna = new THREE.Group();
+          antenna.name = "antenna";
+          antenna.position.set(0, top + 0.10 * s, 0);
+          g.add(antenna);
+          const neck = solid(new THREE.CylinderGeometry(0.016 * s, 0.022 * s, 0.09 * s, 8), metal);
+          neck.position.y = -0.02 * s;
+          antenna.add(neck);
+          const head = new THREE.Group();
+          head.position.y = 0.035 * s;
+          head.rotation.x = 0.62;
+          antenna.add(head);
+          head.add(lathe([
+            [0.02 * s, 0.01 * s], [0.08 * s, 0.03 * s], [0.15 * s, 0.075 * s], [0.21 * s, 0.145 * s],
+            [0.225 * s, 0.175 * s], [0.20 * s, 0.15 * s], [0.14 * s, 0.085 * s], [0.07 * s, 0.042 * s], [0.02 * s, 0.022 * s]
+          ], metal));
+          const arm = new THREE.Group();
+          arm.position.set(0, 0.11 * s, 0.15 * s);
+          arm.rotation.x = -0.95;
+          head.add(arm);
+          const rod = solid(new THREE.CylinderGeometry(0.007 * s, 0.007 * s, 0.20 * s, 6), metal);
+          rod.position.y = 0.09 * s;
+          arm.add(rod);
+          const lnb = solid(new THREE.CylinderGeometry(0.026 * s, 0.016 * s, 0.05 * s, 8), metal);
+          lnb.position.y = 0.20 * s;
+          arm.add(lnb);
+        } else if (name === "Halo") {
+          const halo = put(solid(new THREE.TorusGeometry(0.34 * s, 0.034 * s, 10, 32), hot), 0, top + 0.16 * s, 0);
+          halo.rotation.x = Math.PI / 2;
+        } else if (name === "Small wings") {
+          const hingeZ = -0.06;
+          const addWing = (radius, segs, scale, cx, cy, rz, mat) => {
+            const H = radius * scale[1];
+            const xAt = yl => cx - yl * Math.sin(rz);
+            const rootY = Math.abs(xAt(H)) <= Math.abs(xAt(-H)) ? H : -H;
+            const hinge = new THREE.Group();
+            hinge.name = "wing";
+            hinge.position.set(cx - rootY * Math.sin(rz), cy + rootY * Math.cos(rz), hingeZ);
+            const rearward = Math.sign(cx);
+            hinge.userData.back = rearward * 0.45;
+            hinge.userData.flap = rearward * 0.28;
+            hinge.rotation.y = hinge.userData.back;
+            g.add(hinge);
+            const posed = new THREE.Group();
+            posed.rotation.z = rz;
+            hinge.add(posed);
+            const mesh = sphere(radius, mat, segs);
+            mesh.scale.set(scale[0], scale[1], scale[2]);
+            mesh.position.y = -rootY;
+            posed.add(mesh);
+          };
+          [-1, 1].forEach(side => {
+            const hingeX = side * place.bodyR * 0.45;
+            addWing(0.24 * s, 16, [0.62, 1.45, 0.12], hingeX + side * 0.22 * s, place.shoulderY + 0.46, side * -0.48, m);
+            addWing(0.19 * s, 14, [0.58, 1.2, 0.11], hingeX + side * 0.24 * s, place.shoulderY - 0.14, side * -2.15, lite);
+          });
+        } else if (name === "Antlers") {
+          [-1, 1].forEach(side => {
+            const beam = new THREE.Group();
+            beam.position.set(side * 0.14 * s, top - 0.02 * s, 0);
+            beam.rotation.z = side * -0.72;
+            g.add(beam);
+            beam.add(solid(new THREE.CylinderGeometry(0.028 * s, 0.046 * s, 0.36 * s, 7), m));
+            const branch = (along, len, rx, rz, radius) => {
+              const joint = new THREE.Group();
+              joint.position.y = along;
+              joint.rotation.x = rx;
+              joint.rotation.z = rz;
+              const part = solid(new THREE.CylinderGeometry(radius * 0.5, radius, len, 6), m);
+              part.position.y = len * 0.5;
+              joint.add(part);
+              beam.add(joint);
+            };
+            branch(-0.10 * s, 0.20 * s, 1.2, side * 0.25, 0.028 * s);
+            branch(-0.01 * s, 0.18 * s, 0, side * -0.62, 0.024 * s);
+            branch(0.03 * s, 0.18 * s, -1.2, side * 0.2, 0.024 * s);
+            branch(0.12 * s, 0.16 * s, 0.15, side * 0.38, 0.022 * s);
+          });
+        } else if (name === "Propeller") {
+          const hub = new THREE.Group();
+          hub.name = "propeller";
+          hub.position.set(0, top + 0.04 * s, 0);
+          g.add(hub);
+          hub.add(solid(new THREE.CylinderGeometry(0.05 * s, 0.05 * s, 0.04 * s, 14), band));
+          for (let i = 0; i < 3; i++) {
+            const arm = new THREE.Group();
+            arm.rotation.y = i * (Math.PI * 2 / 3);
+            const blade = solid(new THREE.BoxGeometry(0.30 * s, 0.018 * s, 0.075 * s), m);
+            blade.position.x = 0.19 * s;
+            blade.rotation.z = -0.42;
+            arm.add(blade);
+            hub.add(arm);
+          }
+        }
+      }
+
+      // One texture in figure height. u 0.5 is the face (+Z). v is y from 0.05 to 2.45.
+      function wearClothes(group, material, look, place) {
+        if (!look.clothes || look.clothes === "None") return;
+        const map = clothesMap(look, place);
+        const bodyColor = colorOf(look, "body");
+        group.traverse(mesh => {
+          if (!mesh.isMesh || mesh.material !== material) return;
+          if (mesh.geometry && mesh.geometry.type === "BoxGeometry") {
+            const plain = material.clone();
+            plain.color.copy(bodyColor);
+            mesh.material = plain;
+            return;
+          }
+          writeClothUVs(mesh);
+        });
+        material.map = map;
+        material.color.set(0xffffff);
+        material.needsUpdate = true;
+      }
+      function writeClothUVs(mesh) {
+        const pos = mesh.geometry.attributes.position;
+        const yBase = mesh.position.y;
+        const sx = mesh.scale.x || 1;
+        const sy = mesh.scale.y || 1;
+        const sz = mesh.scale.z || 1;
+        const uv = new Float32Array(pos.count * 2);
+        for (let i = 0; i < pos.count; i++) {
+          const x = pos.getX(i) * sx;
+          const y = yBase + pos.getY(i) * sy;
+          const z = pos.getZ(i) * sz;
+          uv[i * 2] = Math.atan2(x, z) / (Math.PI * 2) + 0.5;
+          uv[i * 2 + 1] = (y - 0.05) / 2.4;
+        }
+        mesh.geometry.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+      }
+      function clothesMap(look, place) {
+        const w = 512;
+        const h = 512;
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        const img = ctx.createImageData(w, h);
+        const data = img.data;
+        const y0 = 0.05;
+        const span = 2.4;
+        const body = colorOf(look, "body");
+        const cloth = colorOf(look, "clothes");
+        const shade = (color, dl) => {
+          const c = color.clone();
+          const hsl = { h: 0, s: 0, l: 0 };
+          c.getHSL(hsl);
+          c.setHSL(hsl.h, hsl.s, Math.min(0.8, Math.max(0.16, hsl.l + dl)));
+          return c;
+        };
+        const bytes = (color) => {
+          const c = color.clone();
+          if (c.convertLinearToSRGB) c.convertLinearToSRGB();
+          return [Math.round(c.r * 255), Math.round(c.g * 255), Math.round(c.b * 255), 255];
+        };
+        const put = (x, y, rgba) => {
+          const i = (y * w + x) * 4;
+          data[i] = rgba[0];
+          data[i + 1] = rgba[1];
+          data[i + 2] = rgba[2];
+          data[i + 3] = rgba[3];
+        };
+        const name = look.clothes;
+        let hem = Math.max(0.34, place.shoulderY - 0.78);
+        if (name === "Suit") hem = Math.max(0.16, place.shoulderY - 1.05);
+        let neck = Math.min(place.faceY - place.faceR * 0.55, place.shoulderY + 0.18);
+        if (name === "Turtleneck") neck = Math.min(place.faceY - place.faceR * 0.22, neck + 0.18);
+        const jacketHem = Math.min(neck - 0.26, hem + (neck - hem) * 0.46);
+        const topAt = (u) => {
+          const scoop = Math.pow(Math.max(0, Math.cos((u - 0.5) * Math.PI * 2)), 2);
+          if (name === "Blouse") return neck - scoop * 0.2;
+          if (name === "T-shirt" || name === "Striped shirt") return neck - scoop * 0.09;
+          return neck;
+        };
+        const bodyPx = bytes(body);
+        const clothPx = bytes(cloth);
+        const pleatHi = bytes(shade(cloth, 0.12));
+        const pleatLo = bytes(shade(cloth, -0.1));
+        const ribPx = bytes(shade(cloth, -0.14));
+        const edgePx = bytes(shade(cloth, -0.18));
+        const shirtPx = bytes(shade(cloth, 0.18));
+        const tiePx = bytes(shade(cloth, -0.22));
+        const trouserPx = bytes(shade(cloth, -0.08));
+        for (let y = 0; y < h; y++) {
+          const fig = y0 + (1 - y / (h - 1)) * span;
+          for (let x = 0; x < w; x++) {
+            const u = x / w;
+            const top = topAt(u);
+            if (fig < hem || fig > top) {
+              put(x, y, bodyPx);
+              continue;
+            }
+            let px = clothPx;
+            if (name === "Pleated shirt") {
+              px = Math.floor(u * 22) % 2 ? pleatHi : pleatLo;
+              if (fig > neck - 0.06) px = ribPx;
+            } else if (name === "Striped shirt") {
+              px = Math.floor((fig - hem) / 0.075) % 2 ? pleatHi : pleatLo;
+              if (top - fig < 0.05) px = clothPx;
+            } else if (name === "Turtleneck") {
+              const rib = fig > neck - 0.16 && Math.floor((neck - fig) / 0.02) % 2 === 0;
+              const hemRib = fig < hem + 0.06 && Math.floor((fig - hem) / 0.02) % 2 === 0;
+              px = rib || hemRib ? ribPx : clothPx;
+            } else if (name === "Suit") {
+              const du = Math.abs(u - 0.5);
+              const open = Math.max(0, (fig - (jacketHem + 0.06)) / Math.max(0.2, neck - jacketHem - 0.06));
+              const half = 0.016 + open * 0.08;
+              const tieT = Math.max(0, Math.min(1, (neck - 0.04 - fig) / 0.28));
+              if (fig < jacketHem) px = du < 0.01 ? edgePx : trouserPx;
+              else if (du < 0.012 + tieT * 0.014 && fig < neck - 0.03 && fig > jacketHem + 0.08) px = tiePx;
+              else if (open > 0 && du < half) px = shirtPx;
+              else if (open > 0 && Math.abs(du - half) < 0.012) px = edgePx;
+              else if (fig > neck - 0.05) px = ribPx;
+              else px = clothPx;
+              if (Math.abs(fig - jacketHem) < 0.018) px = edgePx;
+            }
+            if (Math.abs(fig - hem) < 0.016 || top - fig < 0.014) px = edgePx;
+            put(x, y, px);
+          }
+        }
+        ctx.putImageData(img, 0, 0);
+        if (name === "Pleated shirt") {
+          const placket = bytes(shade(cloth, 0.05));
+          ctx.fillStyle = `rgb(${placket[0]},${placket[1]},${placket[2]})`;
+          const x0 = Math.floor(0.488 * w);
+          const yTop = (1 - (neck - y0) / span) * (h - 1);
+          const yHem = (1 - (hem - y0) / span) * (h - 1);
+          ctx.fillRect(x0, yTop, Math.ceil(0.024 * w), yHem - yTop);
+          ctx.fillStyle = `rgb(${edgePx[0]},${edgePx[1]},${edgePx[2]})`;
+          for (let i = 0; i < 5; i++) {
+            const fig = hem + 0.1 + i * (neck - hem - 0.16) / 4;
+            const cy = (1 - (fig - y0) / span) * (h - 1);
+            ctx.beginPath();
+            ctx.arc(w / 2, cy, 4.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        } else if (name === "Blouse") {
+          const petal = bytes(shade(cloth, 0.18));
+          const heart = bytes(shade(cloth, -0.22));
+          const petalCss = `rgb(${petal[0]},${petal[1]},${petal[2]})`;
+          const heartCss = `rgb(${heart[0]},${heart[1]},${heart[2]})`;
+          const bloom = (cx, cy, r) => {
+            ctx.fillStyle = petalCss;
+            for (let i = 0; i < 5; i++) {
+              const a = -Math.PI / 2 + i * Math.PI * 2 / 5;
+              ctx.beginPath();
+              ctx.ellipse(cx + Math.cos(a) * r * 0.52, cy + Math.sin(a) * r * 0.52, r * 0.5, r * 0.32, a, 0, Math.PI * 2);
+              ctx.fill();
+            }
+            ctx.fillStyle = heartCss;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r * 0.24, 0, Math.PI * 2);
+            ctx.fill();
+          };
+          const cols = 6;
+          const rows = 4;
+          for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+              const u = ((col + (row % 2 ? 0.5 : 0)) / cols) % 1;
+              const fig = hem + 0.1 + (row + 0.45) * (neck - hem - 0.18) / rows;
+              if (fig > topAt(u) - 0.05 || fig < hem + 0.05) continue;
+              const cx = u * w;
+              const cy = (1 - (fig - y0) / span) * (h - 1);
+              bloom(cx, cy, row % 2 ? 13 : 17);
+            }
+          }
+          const bow = shade(cloth, 0.14);
+          const b = bytes(bow);
+          ctx.fillStyle = `rgb(${b[0]},${b[1]},${b[2]})`;
+          const neckY = topAt(0.5);
+          const cy = (1 - (neckY - 0.04 - y0) / span) * (h - 1);
+          const cx = w / 2;
+          ctx.beginPath();
+          ctx.ellipse(cx - 16, cy, 16, 11, -0.4, 0, Math.PI * 2);
+          ctx.ellipse(cx + 16, cy, 16, 11, 0.4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillRect(cx - 5, cy - 5, 10, 10);
+          ctx.beginPath();
+          ctx.moveTo(cx - 6, cy + 4);
+          ctx.lineTo(cx - 22, cy + 36);
+          ctx.lineTo(cx - 8, cy + 28);
+          ctx.moveTo(cx + 6, cy + 4);
+          ctx.lineTo(cx + 24, cy + 34);
+          ctx.lineTo(cx + 8, cy + 26);
+          ctx.fill();
+        } else if (name === "Suit") {
+          ctx.fillStyle = `rgb(${edgePx[0]},${edgePx[1]},${edgePx[2]})`;
+          for (let i = 0; i < 3; i++) {
+            const fig = jacketHem + 0.08 + i * 0.09;
+            const cy = (1 - (fig - y0) / span) * (h - 1);
+            ctx.beginPath();
+            ctx.arc(w * 0.535, cy, 4.2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        const tex = new THREE.CanvasTexture(canvas);
+        if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.needsUpdate = true;
+        return tex;
+      }
+
+      function makeTool(look) {
+        const m = paint(look, "tool", { metalness: 0.46, roughness: 0.32, clearcoat: 0.2 });
+        const shade = (dl, extra) => {
+          const c = colorOf(look, "tool");
+          const hsl = { h: 0, s: 0, l: 0 };
+          c.getHSL(hsl);
+          c.setHSL(hsl.h, hsl.s, Math.min(0.74, Math.max(0.1, hsl.l + dl)));
+          return paint(look, "tool", Object.assign({ color: c, metalness: 0.46, roughness: 0.32, clearcoat: 0.2 }, extra || {}));
+        };
+        const dark = shade(-0.14);
+        const lite = shade(0.16, { metalness: 0.1, roughness: 0.48 });
+        const hot = paint(look, "features", { emissive: colorOf(look, "features"), emissiveIntensity: 0.75 });
+        const g = new THREE.Group();
+        const add = (mesh, y, x, z) => { mesh.position.set(x || 0, y || 0, z || 0); g.add(mesh); return mesh; };
+        const name = look.tool;
+        // Built flat in local XY. +Y runs toward the working end. +X is the belly
+        // (screen-down when the hold roll is 0). The hold rolls this in the camera plane.
+        if (name === "Wrench") {
+          add(solid(new THREE.CylinderGeometry(0.016, 0.022, 0.28, 12), m), 0.14);
+          add(solid(new THREE.CylinderGeometry(0.028, 0.02, 0.04, 12), m), 0.3);
+          const jaw = add(solid(new THREE.TorusGeometry(0.058, 0.016, 8, 20, Math.PI * 1.45), m), 0.4);
+          jaw.rotation.z = 2.43 - Math.PI / 4;
+        } else if (name === "Pencil") {
+          add(solid(new THREE.CylinderGeometry(0.02, 0.02, 0.05, 12), dark), 0.045);
+          add(solid(new THREE.CylinderGeometry(0.017, 0.017, 0.042, 12), lite), 0.012);
+          add(solid(new THREE.CylinderGeometry(0.016, 0.016, 0.3, 6), m), 0.2);
+          add(solid(new THREE.ConeGeometry(0.016, 0.09, 8), lite), 0.385);
+          add(solid(new THREE.ConeGeometry(0.005, 0.032, 8), dark), 0.44);
+        } else if (name === "Magnifying glass") {
+          add(solid(new THREE.CylinderGeometry(0.014, 0.016, 0.26, 10), m), 0.13);
+          add(solid(new THREE.CylinderGeometry(0.018, 0.015, 0.08, 12), dark), 0.27);
+          add(solid(new THREE.TorusGeometry(0.09, 0.015, 8, 24), m), 0.4);
+          const lens = add(solid(new THREE.CylinderGeometry(0.074, 0.074, 0.008, 24), lite), 0.4);
+          lens.rotation.x = Math.PI / 2;
+        } else if (name === "Brush") {
+          add(solid(new THREE.CylinderGeometry(0.012, 0.016, 0.26, 10), m), 0.13);
+          add(solid(new THREE.CylinderGeometry(0.03, 0.02, 0.06, 12), dark), 0.25);
+          const bristles = add(solid(new THREE.ConeGeometry(0.042, 0.14, 10), dark), 0.35);
+          bristles.scale.x = 1.4;
+        } else if (name === "Clipboard") {
+          const board = new THREE.Group();
+          const put = (mesh, y, x, z) => { mesh.position.set(x || 0, y || 0, z || 0); board.add(mesh); return mesh; };
+          put(solid(new THREE.BoxGeometry(0.18, 0.26, 0.014), m), 0.15);
+          put(solid(new THREE.BoxGeometry(0.15, 0.2, 0.006), lite), 0.14, 0, 0.009);
+          put(solid(new THREE.BoxGeometry(0.09, 0.04, 0.018), dark), 0.27, 0, 0.012);
+          put(solid(new THREE.BoxGeometry(0.05, 0.012, 0.02), m), 0.292, 0, 0.016);
+          board.scale.setScalar(1.5);
+          g.add(board);
+        } else if (name === "Watering can") {
+          const can = new THREE.Group();
+          const put = (mesh, y, x, z) => { mesh.position.set(x || 0, y || 0, z || 0); can.add(mesh); return mesh; };
+          const body = put(solid(new THREE.CylinderGeometry(0.07, 0.07, 0.16, 20), m), 0.18);
+          body.rotation.z = Math.PI / 2;
+          const top = put(solid(new THREE.ConeGeometry(0.072, 0.12, 20), m), 0.18, -0.13);
+          top.rotation.z = Math.PI / 2;
+          const spout = new THREE.Group();
+          spout.position.set(-0.08, 0.24, 0);
+          spout.rotation.z = 1.15;
+          const tube = solid(new THREE.CylinderGeometry(0.012, 0.02, 0.14, 8), dark);
+          tube.position.y = 0.07;
+          spout.add(tube);
+          can.add(spout);
+          const handle = put(solid(new THREE.TorusGeometry(0.075, 0.012, 6, 16, Math.PI), m), 0.135, 0);
+          handle.rotation.z = Math.PI;
+          can.scale.setScalar(1.5);
+          g.add(can);
+        } else if (name === "Telescope") {
+          add(solid(new THREE.CylinderGeometry(0.016, 0.02, 0.07, 12), dark), 0.04);
+          add(solid(new THREE.CylinderGeometry(0.03, 0.03, 0.15, 14), m), 0.15);
+          add(solid(new THREE.CylinderGeometry(0.024, 0.024, 0.018, 12), dark), 0.1);
+          add(solid(new THREE.CylinderGeometry(0.046, 0.032, 0.13, 14), m), 0.28);
+          add(solid(new THREE.CylinderGeometry(0.054, 0.054, 0.026, 14), dark), 0.35);
+        } else if (name === "Hammer") {
+          add(solid(new THREE.CylinderGeometry(0.015, 0.02, 0.4, 10), m), 0.18);
+          add(solid(new THREE.BoxGeometry(0.16, 0.055, 0.04), m), 0.36);
+        } else if (name === "Saw") {
+          add(solid(new THREE.TorusGeometry(0.1, 0.02, 8, 20), m), 0.02);
+          add(solid(new THREE.BoxGeometry(0.075, 0.58, 0.01), m), 0.4, -0.014);
+          add(solid(new THREE.BoxGeometry(0.016, 0.58, 0.014), dark), 0.4, -0.05);
+          for (let i = 0; i < 16; i++) {
+            const tooth = add(solid(new THREE.ConeGeometry(0.017, 0.032, 3), dark), 0.16 + i * 0.034, 0.032);
+            tooth.rotation.z = -Math.PI / 2;
+          }
+        } else if (name === "Fairy wand") {
+          add(solid(new THREE.CylinderGeometry(0.006, 0.008, 0.44, 8), m), 0.2);
+          const ribbon = add(solid(new THREE.TorusGeometry(0.045, 0.006, 6, 14, Math.PI), lite), 0.34, 0.03);
+          ribbon.rotation.z = 0.8;
+          const tail = add(solid(new THREE.TorusGeometry(0.032, 0.005, 6, 12, Math.PI * 0.85), lite), 0.3, -0.02);
+          tail.rotation.z = -2.4;
+          for (let i = 0; i < 5; i++) {
+            const a = i * Math.PI * 2 / 5;
+            const dx = Math.sin(a);
+            const dy = Math.cos(a);
+            const point = add(solid(new THREE.ConeGeometry(0.026, 0.12, 4), hot), 0.52 + dy * 0.028, dx * 0.028);
+            point.rotation.z = Math.atan2(-dx, dy);
+            point.scale.z = 0.32;
+          }
+        } else if (name === "Scissors") {
+          add(sphere(0.015, dark, 10), 0.16);
+          [-1, 1].forEach(side => {
+            const half = new THREE.Group();
+            half.position.set(0, 0.16, side * 0.003);
+            half.rotation.z = side * -0.48;
+            const blade = solid(new THREE.BoxGeometry(0.016, 0.274, 0.006), m);
+            blade.position.y = 0.054;
+            half.add(blade);
+            const tip = solid(new THREE.ConeGeometry(0.011, 0.046, 4), m);
+            tip.position.y = 0.2;
+            half.add(tip);
+            const loop = solid(new THREE.TorusGeometry(0.024, 0.007, 6, 14), m);
+            loop.position.set(0, -0.105, 0);
+            half.add(loop);
+            g.add(half);
+          });
+        } else if (name === "Tongs") {
+          const spring = add(solid(new THREE.TorusGeometry(0.026, 0.009, 6, 12, Math.PI), m), 0.02);
+          spring.rotation.z = Math.PI / 2;
+          [-1, 1].forEach(side => {
+            const pivot = new THREE.Group();
+            pivot.position.set(0, 0.04, 0);
+            pivot.rotation.z = side * -0.16;
+            const arm = solid(new THREE.CylinderGeometry(0.008, 0.01, 0.28, 8), m);
+            arm.position.y = 0.14;
+            pivot.add(arm);
+            const tip = sphere(0.02, dark, 10);
+            tip.position.set(0, 0.3, 0);
+            tip.scale.set(0.62, 1.2, 0.5);
+            pivot.add(tip);
+            g.add(pivot);
+          });
+        }
+        return g;
+      }
+
+      // roll: radians from screen-right toward screen-up. grip: point in the tool that sits in the hand.
+      // arm: [upper rotation.x, upper rotation.z, elbow rotation.z] for the right arm.
+      const HOLDS = {
+        "Wrench": { roll: -0.45, grip: [0, 0.10, 0], arm: [-1.20, 1.00, -0.75] },
+        "Pencil": { roll: -1.05, grip: [0, 0.22, 0], arm: [-1.05, 0.25, 0] },
+        "Magnifying glass": { roll: Math.PI / 2, grip: [0, 0.12, 0], arm: [0.90, 2.35, 0.90] },
+        "Brush": { roll: -1.15, grip: [0, 0.12, 0], arm: [-1.20, 0.85, -0.75] },
+        "Clipboard": { roll: Math.PI / 2, grip: [0.12, 0.22, 0], arm: [-1.35, 0.10, 0] },
+        "Watering can": { roll: 0, grip: [0, 0.09, 0], arm: [-0.90, 0.40, 0.90] },
+        "Telescope": { roll: 0.2, grip: [0, 0.16, 0], arm: [0.40, 2.80, 0] },
+        "Hammer": { roll: 1.25, grip: [0, 0.08, 0], arm: [-1.35, 1.30, -1.20] },
+        "Saw": { roll: -0.25, grip: [0, 0.02, 0], arm: [-1.35, 0.55, -0.45] },
+        "Fairy wand": { roll: 1.2, grip: [0, 0.10, 0], arm: [0.75, 2.80, 0] },
+        "Scissors": { roll: -0.35, grip: [0, 0.055, -0.05], arm: [-1.50, 0.10, 0.90] },
+        "Tongs": { roll: -Math.PI / 2, grip: [0, 0.04, 0], arm: [-1.20, 0.55, -0.30] }
+      };
+
+      function addArms(g, look, place, activity) {
+        const material = paint(look, "body");
+        const pose = HOLDS[look.tool];
+        let holder = null;
+        [-1, 1].forEach(side => {
+          const arm = new THREE.Group();
+          const upperLen = 0.22;
+          const lowerLen = 0.18;
+          const rad = 0.05;
+          const upper = solid(new THREE.CapsuleGeometry(rad, upperLen, 4, 8), material);
+          upper.position.y = -upperLen / 2;
+          arm.add(upper);
+          const elbow = new THREE.Group();
+          elbow.position.y = -upperLen;
+          const lower = solid(new THREE.CapsuleGeometry(rad * 0.88, lowerLen, 4, 8), material);
+          lower.position.y = -lowerLen / 2;
+          elbow.add(lower);
+          const hand = sphere(rad * 1.15, material, 14);
+          hand.position.y = -lowerLen;
+          elbow.add(hand);
+          arm.add(elbow);
+          arm.position.set(side * (place.bodyR * 0.92 + 0.02), place.shoulderY, 0.04);
+          if (pose && side > 0) {
+            arm.rotation.x = pose.arm[0];
+            arm.rotation.z = pose.arm[1];
+            elbow.rotation.z = pose.arm[2];
+            holder = { elbow, y: -lowerLen };
+          } else if (activity === "working" && side > 0) {
+            arm.rotation.z = 1.15;
+            arm.rotation.x = -0.7;
+            elbow.rotation.z = -0.95;
+          } else {
+            arm.rotation.z = side * 0.62;
+            arm.rotation.x = 0.18;
+            elbow.rotation.z = side * -0.85;
+          }
+          g.add(arm);
+        });
+        if (pose && holder) {
+          const tool = makeTool(look);
+          tool.name = "held-tool";
+          tool.scale.setScalar(0.92);
+          holder.elbow.add(tool);
+          aimHeldTool(tool, holder.elbow, g, pose, holder.y);
+        }
+      }
+
+      function aimHeldTool(tool, elbow, figure, pose, handY) {
+        figure.updateMatrixWorld(true);
+        const cam = views[0].camera;
+        cam.updateMatrixWorld(true);
+        const right = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0);
+        const up = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 1);
+        const toward = new THREE.Vector3();
+        cam.getWorldDirection(toward).negate();
+        const shaft = right.clone().multiplyScalar(Math.cos(pose.roll)).addScaledVector(up, Math.sin(pose.roll));
+        shaft.addScaledVector(toward, -shaft.dot(toward)).normalize();
+        const face = toward.clone().addScaledVector(shaft, -toward.dot(shaft)).normalize();
+        const xAxis = new THREE.Vector3().crossVectors(shaft, face).normalize();
+        const worldQ = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(xAxis, shaft, face));
+        const parentQ = elbow.getWorldQuaternion(new THREE.Quaternion());
+        tool.quaternion.copy(parentQ).invert().multiply(worldQ);
+        const grip = new THREE.Vector3(pose.grip[0], pose.grip[1], pose.grip[2]).multiplyScalar(tool.scale.x);
+        grip.applyQuaternion(tool.quaternion);
+        tool.position.set(0, handY, 0).sub(grip);
+      }
+
+      function buildFigure(look, sealed, activity) {
+        const g = new THREE.Group();
+        const bodyMat = paint(look, "body");
+        const { group, place } = shapeBody(look.shape, bodyMat, look);
+        g.add(group);
+        if (!sealed) wearClothes(group, bodyMat, look, place);
+        addFace(g, look, place);
+        if (!sealed) {
+          addArms(g, look, place, activity);
+          addExtra(g, look, place);
+        }
+        return g;
+      }
+
+      function clearGroup(group) {
+        const mats = new Set();
+        for (const child of [...group.children]) {
+          child.traverse(obj => {
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) {
+              const list = Array.isArray(obj.material) ? obj.material : [obj.material];
+              list.forEach(material => mats.add(material));
+            }
+          });
+          group.remove(child);
+        }
+        mats.forEach(material => {
+          if (material.map) material.map.dispose();
+          material.dispose();
+        });
+      }
+
+      function shadowTexture() {
+        const c = document.createElement("canvas");
+        c.width = c.height = 128;
+        const g = c.getContext("2d");
+        const grd = g.createRadialGradient(64, 64, 8, 64, 64, 62);
+        grd.addColorStop(0, "rgba(28,36,48,0.26)");
+        grd.addColorStop(1, "rgba(28,36,48,0)");
+        g.fillStyle = grd;
+        g.fillRect(0, 0, 128, 128);
+        const tex = new THREE.CanvasTexture(c);
+        if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+        return tex;
+      }
+      function studioEnv(renderer) {
+        const c = document.createElement("canvas");
+        c.width = 128;
+        c.height = 64;
+        const g = c.getContext("2d");
+        const grd = g.createLinearGradient(0, 0, 0, 64);
+        grd.addColorStop(0, "#fff7ee");
+        grd.addColorStop(0.42, "#d5e0ee");
+        grd.addColorStop(1, "#667588");
+        g.fillStyle = grd;
+        g.fillRect(0, 0, 128, 64);
+        g.fillStyle = "rgba(255,255,255,0.95)";
+        g.beginPath();
+        g.ellipse(40, 16, 24, 12, 0, 0, Math.PI * 2);
+        g.fill();
+        const tex = new THREE.CanvasTexture(c);
+        tex.mapping = THREE.EquirectangularReflectionMapping;
+        if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+        const pmrem = new THREE.PMREMGenerator(renderer);
+        const env = pmrem.fromEquirectangular(tex).texture;
+        pmrem.dispose();
+        tex.dispose();
+        return env;
+      }
+
+      const views = [...document.querySelectorAll(".stage")].map(parent => {
+        const canvas = parent.querySelector("canvas");
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+        renderer.setClearColor(0x000000, 0);
+        if (THREE.SRGBColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace;
+        if (THREE.ACESFilmicToneMapping) {
+          renderer.toneMapping = THREE.ACESFilmicToneMapping;
+          renderer.toneMappingExposure = 1.05;
+        }
+        const scene = new THREE.Scene();
+        try { scene.environment = studioEnv(renderer); } catch (err) { scene.environment = null; }
+        const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 40);
+        camera.position.set(1.55, 1.72, 3.95);
+        camera.lookAt(0, 1.2, 0);
+        scene.add(new THREE.HemisphereLight(0xfff4e8, 0x93a6bb, 0.65));
+        const key = new THREE.DirectionalLight(0xfff8f1, 2.5);
+        key.position.set(2.6, 4.4, 3.4);
+        scene.add(key);
+        const fill = new THREE.DirectionalLight(0xd7e4f6, 0.65);
+        fill.position.set(-3.4, 1.8, 2.4);
+        scene.add(fill);
+        const rim = new THREE.DirectionalLight(0xffffff, 1.2);
+        rim.position.set(-1.6, 3.4, -2.8);
+        scene.add(rim);
+        const rig = new THREE.Group();
+        const inner = new THREE.Group();
+        rig.add(inner);
+        scene.add(rig);
+        const shadow = new THREE.Mesh(
+          new THREE.PlaneGeometry(1.7, 1.7),
+          new THREE.MeshBasicMaterial({ map: shadowTexture(), transparent: true, depthWrite: false })
+        );
+        shadow.rotation.x = -Math.PI / 2;
+        shadow.position.y = 0.02;
+        scene.add(shadow);
+        return { key: parent.dataset.view, parent, renderer, scene, camera, rig, inner, shadow };
+      });
+
+      function applyPose(view) {
+        view.rig.position.set(view.pose.x, view.pose.y, view.pose.z);
+        view.rig.scale.setScalar(Math.max(0.05, view.pose.s));
+        view.shadow.position.set(view.pose.x, 0.02, view.pose.z);
+        const s = Math.max(0.4, view.pose.s);
+        view.shadow.scale.setScalar(s);
+      }
+
+      let faceT = 0;
+      let drawnFace = "";
+      function screenLook() {
+        const look = { ...state.look };
+        if (state.presence !== "present") look.expression = "Resting";
+        else if (state.activity === "working" && !state.turning) {
+          look.expression = Math.floor(faceT / 0.45) % 2 === 0 ? "Focused" : "Determined";
+        }
+        return look;
+      }
+      function layout() {
+        const present = state.presence === "present";
+        const face = screenLook();
+        drawnFace = face.expression;
+        document.getElementById("panel").classList.toggle("show", present);
+        for (const view of views) {
+          const look = view.key === "A"
+            ? { ...face, shape: "Android", extra: "None", clothes: "None", tool: "None" }
+            : face;
+          clearGroup(view.inner);
+          view.inner.add(buildFigure(look, !present, present ? state.activity : "idle"));
+          view.target = view.key === "C"
+            ? (present ? { x: 0.55, y: 0.85, z: 0, s: 0.48 } : { x: 1.05, y: 0.05, z: 0, s: 0.3 })
+            : (present ? { x: 0, y: 0, z: 0, s: 1 } : { x: 0, y: -0.22, z: 0, s: 0.6 });
+          if (!view.pose) view.pose = { ...view.target };
+          applyPose(view);
+        }
+      }
+
+      function resize(view) {
+        const w = view.parent.clientWidth;
+        const h = view.parent.clientHeight;
+        if (!w || !h || (view.w === w && view.h === h)) return;
+        view.w = w;
+        view.h = h;
+        view.renderer.setSize(w, h, false);
+        view.camera.aspect = w / h;
+        view.camera.updateProjectionMatrix();
+      }
+
+      let lastNow = 0;
+      let earPlan = null;
+      // One double snap, then a rest of about ten seconds. Which ear, and the rest, are chosen each time.
+      function earFlick(local) {
+        const burst = (start, dur) => {
+          if (local < start || local >= start + dur) return 0;
+          const k = (local - start) / dur;
+          const s = Math.sin(Math.PI * k);
+          return s * s;
+        };
+        return burst(0, 0.18) + burst(0.24, 0.12) * 0.65;
+      }
+      function frame(now) {
+        const dt = lastNow ? Math.min(0.05, (now - lastNow) / 1000) : 0.016;
+        lastNow = now;
+        let spinY = 0;
+        faceT = now / 1000;
+        if (spin) {
+          const u = Math.min(1, (now - spin.t0) / 1200);
+          spinY = (1 - Math.pow(1 - u, 3)) * Math.PI * 2;
+          if (!spin.shown && spinY >= Math.PI) {
+            state = { ...state, look: spin.pending, memory: spin.memory, pending: null, pendingMemory: null, last: "Applied. New roll." };
+            spin.shown = true;
+            layout();
+            renderChrome();
+          }
+          if (u >= 1) {
+            spin = null;
+            spinY = 0;
+            if (state.turning) {
+              state = { ...state, turning: false };
+              renderChrome();
+            }
+          }
+        }
+        if (state.activity === "summoned" && views.every(view => view.pose && Math.abs(view.pose.s - view.target.s) < 0.03)) {
+          state = { ...state, activity: "idle", last: "Idle.", changed: "" };
+          renderChrome();
+        }
+        const faceNow = screenLook().expression;
+        if (faceNow !== drawnFace) {
+          layout();
+          renderChrome();
+        }
+        const t = now / 1000;
+        const present = state.presence === "present";
+        const bobAmp = present ? (state.activity === "working" ? 0.05 : 0.028) : 0;
+        const bobSpeed = state.activity === "working" ? 6.2 : 2.05;
+        const follow = 1 - Math.pow(0.0015, dt);
+        if (!earPlan) earPlan = { t0: t - 1, side: Math.random() < 0.5 ? -1 : 1, gap: 6 + Math.random() * 8 };
+        if (t >= earPlan.t0 + earPlan.gap) {
+          earPlan.t0 = t;
+          earPlan.side = Math.random() < 0.5 ? -1 : 1;
+          earPlan.gap = 6 + Math.random() * 8;
+        }
+        const earKick = earFlick(t - earPlan.t0);
+        const beat = Math.sin(t * 2.8);
+        for (const view of views) {
+          const p = view.pose;
+          const goal = view.target;
+          p.x += (goal.x - p.x) * follow;
+          p.y += (goal.y - p.y) * follow;
+          p.z += (goal.z - p.z) * follow;
+          p.s += (goal.s - p.s) * follow;
+          applyPose(view);
+          view.rig.rotation.set(0, spinY, 0);
+          view.inner.position.y = Math.sin(t * bobSpeed) * bobAmp;
+          view.inner.rotation.x = !spin && present && state.activity === "working" ? Math.sin(t * 2.4) * 0.045 : 0;
+          view.inner.rotation.z = !spin && present ? Math.sin(t * 1.15) * 0.028 : 0;
+          view.inner.traverse(obj => {
+            if (obj.name === "propeller") obj.rotation.y += dt * 8;
+            if (obj.name === "antenna") obj.rotation.y += dt * 0.45;
+            if (obj.name === "wing") obj.rotation.y = obj.userData.back + beat * obj.userData.flap;
+            if (obj.name === "ear") obj.rotation.z = obj.userData.base + (obj.userData.side === earPlan.side ? earKick : 0) * obj.userData.amp;
+          });
+          resize(view);
+          view.renderer.render(view.scene, view.camera);
+        }
+        if (catalogDirty) {
+          let placed = catalogSheets.length > 0;
+          for (const sheet of catalogSheets) placed = renderCatalog(sheet) && placed;
+          if (placed) catalogDirty = false;
+        }
+        requestAnimationFrame(frame);
+      }
+
+      let catalogSheets = [];
+      let catalogDirty = true;
+      const catalogEye = new THREE.Vector3(1.55, 0.52, 3.95).normalize();
+
+      function catalogPose(box, pad) {
+        const center = box.getCenter(new THREE.Vector3());
+        const sphere = new THREE.Sphere();
+        box.getBoundingSphere(sphere);
+        const radius = Math.max(sphere.radius, 0.05) * pad;
+        const dist = radius / Math.sin(THREE.MathUtils.degToRad(19));
+        return {
+          position: center.clone().addScaledVector(catalogEye, dist),
+          target: center,
+          near: Math.max(0.02, dist * 0.12),
+          far: dist + radius * 3
+        };
+      }
+
+      function buildCatalog() {
+        const root = document.createElement("section");
+        root.id = "catalog";
+        root.className = "catalog";
+        const intro = document.createElement("p");
+        intro.className = "note";
+        intro.textContent = "Reference android. One entry each.";
+        root.appendChild(intro);
+        document.body.appendChild(root);
+        const base = {
+          hue: 210, shape: "Android", expression: "Neutral",
+          clothes: "None", tool: "None", extra: "None"
+        };
+        return [
+          makeCatalogSheet(root, "Tools", "tool", TOOLS, base, "tool"),
+          makeCatalogSheet(root, "Extras", "extra", EXTRAS, base, "body")
+        ];
+      }
+
+      function makeCatalogSheet(root, title, key, names, base, frameMode) {
+        const h2 = document.createElement("h2");
+        h2.textContent = title;
+        const sheet = document.createElement("div");
+        sheet.className = "sheet";
+        const canvas = document.createElement("canvas");
+        const namesEl = document.createElement("div");
+        namesEl.className = "names";
+        const entries = names.filter(name => name !== "None");
+        for (const name of entries) {
+          const span = document.createElement("span");
+          span.textContent = name;
+          namesEl.appendChild(span);
+        }
+        sheet.append(canvas, namesEl);
+        root.append(h2, sheet);
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setPixelRatio(1);
+        renderer.autoClear = false;
+        renderer.setClearColor(0x000000, 0);
+        if (THREE.SRGBColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace;
+        if (THREE.ACESFilmicToneMapping) {
+          renderer.toneMapping = THREE.ACESFilmicToneMapping;
+          renderer.toneMappingExposure = 1.05;
+        }
+        const scene = new THREE.Scene();
+        try { scene.environment = studioEnv(renderer); } catch (err) { scene.environment = null; }
+        scene.add(new THREE.HemisphereLight(0xfff4e8, 0x93a6bb, 0.65));
+        const keyLight = new THREE.DirectionalLight(0xfff8f1, 2.5);
+        keyLight.position.set(2.6, 4.4, 3.4);
+        scene.add(keyLight);
+        const fill = new THREE.DirectionalLight(0xd7e4f6, 0.65);
+        fill.position.set(-3.4, 1.8, 2.4);
+        scene.add(fill);
+        const rim = new THREE.DirectionalLight(0xffffff, 1.2);
+        rim.position.set(-1.6, 3.4, -2.8);
+        scene.add(rim);
+        const camera = new THREE.PerspectiveCamera(38, 1, 0.05, 80);
+        const figures = entries.map((name, index) => {
+          const fig = buildFigure({ ...base, [key]: name }, false, "idle");
+          fig.position.x = index * 24;
+          scene.add(fig);
+          fig.updateMatrixWorld(true);
+          const box = new THREE.Box3();
+          if (frameMode === "tool") {
+            const held = fig.getObjectByName("held-tool");
+            box.setFromObject(held || fig);
+            box.expandByScalar(0.045);
+          } else {
+            box.setFromObject(fig);
+            box.expandByScalar(0.05);
+            box.min.y -= 0.42;
+          }
+          return { fig, pose: catalogPose(box, frameMode === "tool" ? 1.55 : 1.2) };
+        });
+        return { renderer, scene, camera, figures, canvas, namesEl, sheet, cols: 0, bw: 0, bh: 0, rows: 1 };
+      }
+
+      function resizeCatalog(sheet) {
+        const width = sheet.sheet.clientWidth;
+        if (!width) return;
+        const cols = Math.max(1, Math.floor(width / 150));
+        const rows = Math.ceil(sheet.figures.length / cols);
+        const cssH = (width / cols) * rows;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const bw = Math.max(1, Math.round(width * dpr));
+        const bh = Math.max(1, Math.round(cssH * dpr));
+        if (sheet.cols === cols && sheet.bw === bw && sheet.bh === bh) return;
+        sheet.cols = cols;
+        sheet.rows = rows;
+        sheet.bw = bw;
+        sheet.bh = bh;
+        sheet.renderer.setSize(bw, bh, false);
+        sheet.canvas.style.height = cssH + "px";
+        sheet.namesEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+        sheet.namesEl.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+      }
+
+      function renderCatalog(sheet) {
+        resizeCatalog(sheet);
+        const { renderer, camera, figures, bw, bh, cols, rows } = sheet;
+        if (!bw || !bh) return false;
+        for (const entry of figures) entry.fig.visible = false;
+        renderer.setScissorTest(false);
+        renderer.setViewport(0, 0, bw, bh);
+        renderer.clear(true, true, true);
+        renderer.setScissorTest(true);
+        for (let i = 0; i < figures.length; i++) {
+          const col = i % cols;
+          const row = Math.floor(i / cols);
+          const x0 = Math.floor(col * bw / cols);
+          const x1 = Math.floor((col + 1) * bw / cols);
+          const y0 = Math.floor((rows - 1 - row) * bh / rows);
+          const y1 = Math.floor((rows - row) * bh / rows);
+          const w = x1 - x0;
+          const h = y1 - y0;
+          renderer.setViewport(x0, y0, w, h);
+          renderer.setScissor(x0, y0, w, h);
+          const pose = figures[i].pose;
+          camera.aspect = w / Math.max(1, h);
+          camera.position.copy(pose.position);
+          camera.near = pose.near;
+          camera.far = pose.far;
+          camera.lookAt(pose.target);
+          camera.updateProjectionMatrix();
+          figures[i].fig.visible = true;
+          renderer.clear(false, true, false);
+          renderer.render(sheet.scene, camera);
+          figures[i].fig.visible = false;
+        }
+        return true;
+      }
+
+      window.addEventListener("resize", () => { catalogDirty = true; });
+
+      const ATTRS = [
+        ["shape", "Shape", SHAPES],
+        ["expression", "Expression", EXPRESSIONS],
+        ["clothes", "Clothes", CLOTHES],
+        ["tool", "Tool", TOOLS],
+        ["extra", "Extra", EXTRAS]
+      ];
+      const ATTR_LABEL = Object.fromEntries(ATTRS.map(([key, label]) => [key, label]));
+      ATTR_LABEL.hue = "Hue";
+      for (const [key, label] of COLOR_ROLES) {
+        ATTR_LABEL[key + "S"] = label + " saturation";
+        ATTR_LABEL[key + "L"] = label + " lightness";
+      }
+
+      function buildAttrs() {
+        const colorInputs = COLOR_ROLES.flatMap(([key, label]) => [
+          ["S", "saturation"],
+          ["L", "lightness"]
+        ].map(([suffix, word]) => `<label>${label} ${word} <span data-readout></span><input type="range" min="0" max="1" step="0.01" data-attr="${key}${suffix}"></label>`)).join("");
+        const root = document.getElementById("attrs");
+        root.innerHTML = ATTRS.map(([key, label, list]) => `<label>${label}<select data-attr="${key}">${list.map(value => `<option>${value}</option>`).join("")}</select></label>`).join("")
+          + `<label>Hue <span data-readout></span><input type="range" min="0" max="359" step="1" data-attr="hue"></label>`
+          + `<p class="note" style="grid-column: 1 / -1">A roll changes the hue by at least 90° and one or two other attributes. A field that just changed sits out the next roll. A new tool then stays one more roll, new clothes two, and a new extra six. From empty, clothes appear one time in three, a tool one time in two, an extra one time in ten. Clothes empty for four rolls, or a tool for three, show up on the next draw. After that, a draw swaps the piece. Clearing it is rarer: clothes one time in six, a tool one in four, an extra one in eight. A color-only draw is drawn again. Saturation and lightness stay. These are the provisional HSL numbers.</p>`
+          + `<div class="row" style="grid-column: 1 / -1; margin: 0"><button type="button" data-color-reset>Reset sliders</button></div>`
+          + colorInputs;
+      }
+      function paintAttrs() {
+        const look = state.look;
+        document.querySelectorAll("#attrs [data-attr]").forEach(el => {
+          const key = el.dataset.attr;
+          if (el.type === "range") {
+            if (document.activeElement !== el) el.value = String(look[key]);
+            const readout = el.parentElement.querySelector("[data-readout]");
+            if (readout) readout.textContent = key === "hue" ? `${look.hue}°` : Number(look[key]).toFixed(2);
+          } else el.value = look[key];
+        });
+      }
+      function tune(key, value) {
+        const wasResting = state.presence !== "present";
+        const turning = !!state.turning;
+        const shown = key === "hue" ? `${value}°` : typeof value === "number" ? value.toFixed(2) : value;
+        spin = null;
+        state = {
+          ...state,
+          presence: "present",
+          activity: wasResting ? "summoned" : state.activity,
+          look: { ...state.look, [key]: value },
+          memory: loosen(state.memory, key),
+          pending: null,
+          pendingMemory: null,
+          turning: false,
+          changed: "",
+          last: `${wasResting ? "Summoned. " : ""}${turning ? "Turn cancelled. " : ""}${ATTR_LABEL[key]} set to ${shown}.`
+        };
+        layout();
+        renderChrome();
+      }
+      function resetColors() {
+        const wasResting = state.presence !== "present";
+        const turning = !!state.turning;
+        spin = null;
+        state = {
+          ...state,
+          presence: "present",
+          activity: wasResting ? "summoned" : state.activity,
+          look: { ...state.look, ...colorFields(null) },
+          pending: null,
+          pendingMemory: null,
+          turning: false,
+          changed: "",
+          last: `${wasResting ? "Summoned. " : ""}${turning ? "Turn cancelled. " : ""}Saturation and lightness reset.`
+        };
+        layout();
+        renderChrome();
+      }
+
+      function renderChrome() {
+        const look = screenLook();
+        const phase = state.presence !== "present" ? "Dismissed"
+          : state.turning ? "Applied"
+          : state.activity === "summoned" ? "Summoned"
+          : state.activity === "working" ? "Working"
+          : "Idle";
+        document.getElementById("state").innerHTML = `<b>${phase}</b> · ${look.shape} · ${look.expression} · ${look.clothes} · ${look.tool} · ${look.extra} · ${look.hue}° ${temperature(look.hue)}`;
+        paintAttrs();
+        document.getElementById("last").textContent = state.last;
+        document.getElementById("free").innerHTML = [["summon","Summon"],["working","Working"],["idle","Idle"],["applied","Applied"],["dismiss","Dismiss"]].map(([id, label]) => `<button type="button" data-act="${id}">${label}</button>`).join("");
+        document.getElementById("tabs").innerHTML = SCENARIOS.map(s => `<button type="button" data-sc="${s.id}" aria-selected="${scenario && scenario.id === s.id}">${s.name}</button>`).join("");
+        const sc = scenario && SCENARIOS.find(s => s.id === scenario.id);
+        document.getElementById("scenario").textContent = sc ? sc.blurb : "Pick a walkthrough, or use the buttons in any order.";
+        document.getElementById("steps").innerHTML = sc ? sc.steps.map(([, label], i) => `<button type="button" data-step="${i}" ${i === step ? "class=\"step-next\"" : "disabled"}>${i + 1}. ${label}</button>`).join("") : "";
+      }
+
+      function sync() {
+        if (state.changed === "look" && state.pending) spin = { t0: performance.now(), pending: state.pending, memory: state.pendingMemory, shown: false };
+        if (!state.turning) spin = null;
+        layout();
+        renderChrome();
+      }
+
+      // Demo buttons only. A click that is not legal yet advances along
+      // dismissed → summoned → idle → working → applied until it is.
+      function finishTurn() {
+        if (!state.turning) return;
+        const revealing = state.pending != null;
+        state = {
+          ...state,
+          look: revealing ? state.pending : state.look,
+          memory: revealing ? state.pendingMemory : state.memory,
+          pending: null,
+          pendingMemory: null,
+          turning: false,
+          activity: "idle",
+          changed: "",
+          last: revealing ? "Applied. New roll." : state.last
+        };
+        spin = null;
+      }
+      function demoAct(action) {
+        const skipped = state.turning && action !== "applied" && action !== "dismiss";
+        if (skipped) finishTurn();
+        if (action === "summon" || action === "dismiss") {
+          state = reduce(state, action);
+          return;
+        }
+        if (state.presence !== "present") state = reduce(state, "summon");
+        if (action === "idle") {
+          if (state.activity === "summoned") state = { ...state, activity: "idle", last: "Idle.", changed: "activity" };
+          else if (state.activity === "working") state = reduce(state, "idle");
+          else if (!skipped) state = reduce(state, "idle");
+          return;
+        }
+        if (state.activity !== "working") state = reduce(state, "working");
+        else if (action === "working") state = reduce(state, "working");
+        if (action === "working") return;
+        state = reduce(state, "applied");
+      }
+
+      document.getElementById("attrs").addEventListener("input", onAttr);
+      document.getElementById("attrs").addEventListener("change", onAttr);
+      function onAttr(event) {
+        const el = event.target;
+        if (!el.dataset || !el.dataset.attr) return;
+        if (el.type === "range" && event.type !== "input") return;
+        if (el.type !== "range" && event.type !== "change") return;
+        const value = el.type === "checkbox" ? el.checked : el.type === "range" ? Number(el.value) : el.value;
+        tune(el.dataset.attr, value);
+      }
+
+      document.body.addEventListener("click", (event) => {
+        const button = event.target.closest("button");
+        if (!button) return;
+        if (button.dataset.colorReset != null) {
+          resetColors();
+          return;
+        }
+        if (button.dataset.act) {
+          demoAct(button.dataset.act);
+          sync();
+        }
+        if (button.dataset.sc) {
+          scenario = SCENARIOS.find(s => s.id === button.dataset.sc);
+          step = 0;
+          state = fresh();
+          state.last = "Walkthrough reset. Press step 1.";
+          sync();
+        }
+        if (button.dataset.step != null && scenario && Number(button.dataset.step) === step) {
+          const [action] = scenario.steps[step];
+          step += 1;
+          state = reduce(state, action);
+          if (step >= scenario.steps.length) state.last += " Walkthrough finished.";
+          sync();
+        }
+      });
+
+      buildAttrs();
+      catalogSheets = buildCatalog();
+      sync();
+      requestAnimationFrame(frame);
+    }
+  </script>
+</body>
+</html>

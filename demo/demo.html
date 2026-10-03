@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Helferlein demo</title>
+  <link rel="stylesheet" href="./demo.css?v=9">
+  <style>
+    body {
+      background:
+        radial-gradient(880px 520px at 12% -8%, rgba(255, 255, 255, .75), transparent 58%),
+        radial-gradient(720px 480px at 100% 110%, #d7ebe3, transparent 56%),
+        radial-gradient(540px 380px at 78% 0%, rgba(255, 206, 156, .38), transparent 52%),
+        linear-gradient(165deg, #f7f2e8 0%, var(--wash, #f4efe6) 46%, #e3eef6 100%);
+    }
+    .callout {
+      border: 0;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(30, 40, 50, .18);
+    }
+    .boot-error { margin: 16px; padding: 12px 14px; background: #fff4f2; color: #6d2018; border-radius: 12px; }
+  </style>
+</head>
+<body class="page-demo">
+  <nav>
+    <a href="./demo.html" aria-current="page">Demo</a>
+    <a href="./wardrobe.html">Wardrobe</a>
+  </nav>
+  <main>
+    <article class="about">
+      <h1>Helferlein</h1>
+      <p>Helferlein is an animated figure a page can keep nearby. It has a head, a face, a body, and arms, and it floats. The page summons it when there is something to show, and dismisses it when that moment is over.</p>
+      <p>Summoned, it swoops out of a small resting form and idles while it waits. While work is in progress it holds a working pose. When the result is on the page, it turns around, and a new look appears while its back faces you. That look changes the color and one or two other parts: the body, the face, the clothes, a tool, or an extra such as a hat. Then it turns back. Dismiss it and it folds into the corner.</p>
+      <p>This page is a sample of that, and the chat does not call a model. Click the figure, type a message, and watch the pose and the turn. The <a href="./wardrobe.html">wardrobe</a> is where you pick the parts yourself. There, Randomize and the part buttons play the same turn, and the hue slider changes the color at once.</p>
+    </article>
+    <div id="stage">
+      <button type="button" id="summon" class="callout">Click here to activate me</button>
+    </div>
+    <section id="chat" hidden>
+      <header>
+        <span>Helferlein</span>
+        <button type="button" id="close" aria-label="Close">×</button>
+      </header>
+      <div id="log"></div>
+      <form id="talk">
+        <label class="sr" for="say">Message</label>
+        <input id="say" name="say" autocomplete="off" placeholder="Type a message">
+        <button type="submit">Send</button>
+      </form>
+    </section>
+  </main>
+  <script src="../prototype/three.min.js?v=4"></script>
+  <script type="module">
+    import("./demo.js?v=6").catch(error => {
+      const note = document.createElement("p");
+      note.className = "boot-error";
+      note.textContent = "Helferlein did not start. " + error;
+      document.body.append(note);
+    });
+  </script>
+</body>
+</html>

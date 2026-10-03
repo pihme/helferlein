@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Helferlein wardrobe</title>
+  <link rel="stylesheet" href="./demo.css?v=9">
+  <style>
+    body {
+      background:
+        radial-gradient(880px 520px at 12% -8%, rgba(255, 255, 255, .75), transparent 58%),
+        radial-gradient(720px 480px at 100% 110%, #d7ebe3, transparent 56%),
+        radial-gradient(540px 380px at 78% 0%, rgba(255, 206, 156, .38), transparent 52%),
+        linear-gradient(165deg, #f7f2e8 0%, var(--wash, #f4efe6) 46%, #e3eef6 100%);
+    }
+    .boot-error { margin: 16px; padding: 12px 14px; background: #fff4f2; color: #6d2018; border-radius: 12px; }
+  </style>
+</head>
+<body class="page-wardrobe">
+  <nav>
+    <a href="./demo.html">Demo</a>
+    <a href="./wardrobe.html" aria-current="page">Wardrobe</a>
+  </nav>
+  <main>
+    <div id="identity" class="sheet"></div>
+    <div class="wardrobe-center">
+      <div id="stage"></div>
+      <button type="button" id="randomize">Randomize</button>
+    </div>
+    <form id="controls" class="sheet"></form>
+  </main>
+  <script src="../prototype/three.min.js?v=4"></script>
+  <script type="module">
+    import("./wardrobe.js?v=9").catch(error => {
+      const note = document.createElement("p");
+      note.className = "boot-error";
+      note.textContent = "Helferlein did not start. " + error;
+      document.body.append(note);
+    });
+  </script>
+</body>
+</html>
