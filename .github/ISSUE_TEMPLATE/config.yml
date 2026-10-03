@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Website and handbook
+    url: https://pihme.github.io/helferlein/
+    about: Getting started, reference and current status of Helferlein.
+  - name: Report a vulnerability (private)
+    url: https://github.com/pihme/helferlein/security/advisories/new
+    about: Please report security problems privately, not as a public issue.

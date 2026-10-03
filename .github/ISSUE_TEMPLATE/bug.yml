@@ -1,0 +1,43 @@
+name: Bug report
+description: Something in Helferlein does not work as documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please check the open issues first; the website's Current status lists known gaps.
+        **Never paste tokens, keys or credentials.** Security problems go through private reporting (see SECURITY.md), not here.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The release version or the commit you built.
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The host calls (summon, working, applied, ...) or the demo steps, and a minimal page if you have one.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Output or error message. Remove anything personal.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: Browser and version, OS, GPU if known; how you load Helferlein (script tag or ES module) and the three.js version.
