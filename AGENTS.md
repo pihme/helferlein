@@ -68,7 +68,7 @@ License: **PolyForm Noncommercial 1.0.0** (`LICENSE`). Source-available, not OSI
 
 ### Website
 
-- Site: <https://pihme.github.io/helferlein/>, the live demo and wardrobe, built from `main` by `.github/workflows/pages.yml`: the landing page `site/index.html`, `demo/`, the pure `src/roll.js` and `src/blob.js`, and `dist/` (so `dist/helferlein.min.js` there is always the build of `main`). The workflow skips while the repository is private. Do not create a `gh-pages` branch by hand.
+- Site: <https://pihme.github.io/helferlein/>, the live demo and wardrobe, built from `main` by `.github/workflows/pages.yml`: the landing page `site/index.html`, `demo/`, the pure `src/roll.js` and `src/blob.js`, and `dist/` (so `dist/helferlein.min.js` there is always the build of `main`). It runs after a successful CI run on `main` (`workflow_run`), release job included, and checks out `main` again, so after a release it builds the release commit and the files carry the released version. The workflow skips while the repository is private. Do not create a `gh-pages` branch by hand.
 - **Repo description = site tagline.** Keep `site/index.html`, `package.json` `description` and the GitHub repo description in step.
 - Helferlein is not in the family's `family.json` (Jigsaw) or the handbook generator yet; adding it is the maintainer's decision. When it joins, the family rules for the current status, the chronicles and the Jigsaw apply.
 

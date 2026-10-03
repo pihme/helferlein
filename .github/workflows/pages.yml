@@ -1,12 +1,14 @@
 name: Pages
 
-# The live demo and wardrobe, built from main. GitHub Pages needs a public repository on this
-# plan, so the jobs skip while the repository is private. To go live after it is public:
-#   gh api -X POST repos/pihme/helferlein/pages -f build_type=workflow
-# then run this workflow once (Actions -> Pages -> Run workflow).
+# The live demo and wardrobe, built from main. It runs after CI on main has finished, release job
+# included, and builds the newest main: after a release that is the release commit, so the files
+# carry the released version. A push that cuts no release deploys main as it is. A failed CI run
+# deploys nothing. Run it by hand from Actions -> Pages -> Run workflow.
 
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -19,11 +21,16 @@ concurrency:
 
 jobs:
   build:
-    if: ${{ !github.event.repository.private }}
+    if: >-
+      !github.event.repository.private && (github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      # main, not the commit CI ran on: the release job may have pushed a release commit since
       - uses: actions/checkout@v7
+        with:
+          ref: main
       - uses: actions/setup-node@v7
         with:
           node-version: 22
