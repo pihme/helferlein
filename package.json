@@ -1,8 +1,56 @@
 {
   "name": "helferlein",
+  "version": "0.0.0",
   "private": true,
+  "description": "Animated 3D avatar.",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "author": "pihme (https://github.com/pihme)",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./dist/helferlein.js"
+    },
+    "./min": "./dist/helferlein.min.js",
+    "./package.json": "./package.json"
+  },
+  "types": "./types/index.d.ts",
+  "files": [
+    "dist/helferlein.js",
+    "dist/helferlein.min.js",
+    "types/index.d.ts",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "sideEffects": false,
   "scripts": {
-    "test": "node --test"
-  }
+    "build": "node scripts/build.mjs",
+    "size": "node scripts/size.mjs",
+    "typecheck": "tsc -p types/tsconfig.json",
+    "test": "node --test",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": {
+    "three": ">=0.170.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "three": "^0.186.1",
+    "typescript": "^7.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pihme/helferlein.git"
+  },
+  "homepage": "https://pihme.github.io/helferlein/",
+  "bugs": {
+    "url": "https://github.com/pihme/helferlein/issues"
+  },
+  "keywords": [
+    "avatar",
+    "three.js",
+    "webgl",
+    "3d",
+    "animation",
+    "assistant"
+  ]
 }

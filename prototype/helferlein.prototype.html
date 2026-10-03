@@ -70,7 +70,7 @@
   <p><span class="mark">PROTOTYPE</span> Throwaway. Not the product.</p>
   <h1>Helferlein</h1>
   <p class="question">Question: does a rolled look still read as one character, and do the five motions read? A, B, and C are the same moment, side by side. The order is summoned, idle, working, applied, dismissed. The buttons below catch up if you skip ahead. That catch-up is only in this demo. Applied turns the figure once; the new look appears while its back faces you. A roll changes the color and one or two other attributes. Color numbers are provisional. The lists are ideas.</p>
-  <p id="missing">This view needs the local three.min.js next to this file.</p>
+  <p id="missing">This view needs Three.js: run <code>npm ci</code> in the repository root and serve the checkout over HTTP.</p>
   <div class="stages" id="stages">
     <div class="stage" data-view="A"><p class="label">A · Reference android</p><canvas></canvas></div>
     <div class="stage" data-view="B"><p class="label">B · Catalog roll</p><canvas></canvas></div>
@@ -83,8 +83,12 @@
   <div class="row tabs" id="tabs"></div>
   <p class="note" id="scenario"></p>
   <div class="row" id="steps"></div>
-  <script src="three.min.js"></script>
-  <script>
+  <script type="importmap">{ "imports": { "three": "../node_modules/three/build/three.module.js" } }</script>
+  <script type="module">
+    import * as THREE from "three";
+    window.THREE = THREE;
+  </script>
+  <script type="module">
     const SHAPES = ["Android","Peanut","Pear","Egg","Teardrop","Snowman","Lightbulb","Rocket"];
     const EXPRESSIONS = ["Neutral","Resting","Curious","Focused","Pleased","Surprised","Determined","Wink"];
     const ROLL_EXPRESSIONS = ["Neutral","Curious","Pleased","Surprised","Wink"];

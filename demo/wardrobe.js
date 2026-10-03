@@ -1,7 +1,10 @@
-import { mount } from "../src/figure.js?v=3";
-import { CLOTHES, EXTRAS, ROLL_EXPRESSIONS, SHAPES, TOOLS, blankMemory, defaultLook, loosen, rollFrom } from "../src/roll.js";
+// The figure comes from the script-tag build (dist/helferlein.min.js). `loosen` is wardrobe-only.
+import { loosen } from "../src/roll.js";
 import { icon } from "./icons.js";
 import { blankStore, loadStore, saveStore } from "./store.js";
+
+if (!globalThis.Helferlein) throw new Error("dist/helferlein.min.js did not load. Run npm run build.");
+const { CLOTHES, EXTRAS, ROLL_EXPRESSIONS, SHAPES, TOOLS, blankMemory, defaultLook, mount, rollFrom } = globalThis.Helferlein;
 
 const HUES = [0, 24, 45, 70, 120, 160, 190, 210, 235, 265, 300, 330];
 const MODES = [
@@ -23,7 +26,7 @@ const store = loadStore();
 document.documentElement.style.setProperty("--wash", store.background);
 let figure;
 try {
-  figure = mount(document.getElementById("stage"), globalThis.THREE);
+  figure = mount(document.getElementById("stage"));
 } catch (error) {
   const note = document.createElement("p");
   note.className = "boot-error";

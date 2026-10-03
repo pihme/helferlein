@@ -78,12 +78,142 @@ function clearGroup(group) {
   });
 }
 
-function mount(element, THREE) {
-  if (!THREE || !THREE.WebGLRenderer) throw new Error("Three.js did not load");
-  const canvas = element.tagName === "CANVAS" ? element : document.createElement("canvas");
-  if (canvas.parentNode !== element) element.appendChild(canvas);
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
+
+// `reducedMotion: true | false` fixes the choice; left out, it follows the reader's
+// prefers-reduced-motion setting, also when that setting changes while the page is open.
+function motionPreference(options = {}, env = {}) {
+  if (typeof options.reducedMotion === "boolean") {
+    return { calm: options.reducedMotion, stop() {} };
+  }
+  const win = env.window || globalThis;
+  const query = win && typeof win.matchMedia === "function" ? win.matchMedia(REDUCED_MOTION) : null;
+  const pref = { calm: Boolean(query && query.matches), stop() {} };
+  if (query && typeof query.addEventListener === "function") {
+    const onChange = event => { pref.calm = Boolean(event.matches); };
+    query.addEventListener("change", onChange);
+    pref.stop = () => query.removeEventListener("change", onChange);
+  }
+  return pref;
+}
+
+const FALLBACK_SVG = '<svg viewBox="0 0 32 32" width="100%" height="100%" aria-hidden="true">'
+  + '<path d="M16 3 C11 3 9 8 9 12 C9 15 11 16 11 18 L10 27 L22 27 L21 18 C21 16 23 15 23 12 C23 8 21 3 16 3Z" fill="var(--helferlein-body)" stroke="var(--helferlein-face)" stroke-width="1"/>'
+  + '<rect x="11" y="8.5" width="10" height="5" rx="2.5" fill="var(--helferlein-face)"/></svg>';
+
+function commitPending(state) {
+  if (!state.turning || !state.pending) return { ...state, turning: false, pending: null, pendingMemory: null };
+  return { ...state, look: state.pending, memory: state.pendingMemory, turning: false, pending: null, pendingMemory: null };
+}
+
+// Without WebGL the figure is a still silhouette in the look's colors. The host contract
+// and the stored roll work the same: applied rolls and swaps the look at once.
+function mountFallback(element, motion, doc, error) {
+  const node = doc.createElement("div");
+  node.className = "helferlein-fallback";
+  node.setAttribute("role", "img");
+  node.setAttribute("aria-label", "Helferlein");
+  node.innerHTML = FALLBACK_SVG;
+  node.style.setProperty("width", "100%");
+  node.style.setProperty("height", "100%");
+  element.appendChild(node);
+  let state = fresh();
+  let revealHook = null;
+
+  function paint() {
+    const { look } = state;
+    const hsl = (s, l) => `hsl(${look.hue} ${Math.round(s * 100)}% ${Math.round(l * 100)}%)`;
+    node.style.setProperty("--helferlein-body", hsl(look.bodyS, look.bodyL));
+    node.style.setProperty("--helferlein-face", hsl(look.faceS, look.faceL));
+    node.dataset.presence = state.presence;
+    node.dataset.activity = state.activity === "summoned" ? "idle" : state.activity;
+  }
+
+  function reveal() {
+    state = commitPending(state);
+    paint();
+    if (revealHook) {
+      const fn = revealHook;
+      revealHook = null;
+      fn();
+    }
+    return Promise.resolve();
+  }
+
+  function act(action) {
+    state = reduce(state, action);
+    if (state.activity === "summoned") state = { ...state, activity: "idle" };
+    paint();
+    return state;
+  }
+
+  paint();
+  return {
+    webgl: false,
+    error,
+    get reducedMotion() {
+      return motion.calm;
+    },
+    summon: () => act("summon"),
+    working: () => act("working"),
+    idle: () => act("idle"),
+    applied(blob) {
+      if (blob) {
+        const next = readBlob(blob);
+        if (state.presence !== "present") state = reduce(state, "summon");
+        state = { ...state, presence: "present", activity: "idle", turning: true, pending: next.look, pendingMemory: next.memory };
+        return reveal();
+      }
+      const wasTurning = state.turning;
+      act("applied");
+      return state.turning && !wasTurning ? reveal() : Promise.resolve();
+    },
+    watchReveal(fn) {
+      revealHook = fn;
+    },
+    returnFromBack() {
+      state = commitPending({ ...state, presence: "present", activity: "idle" });
+      paint();
+      return Promise.resolve();
+    },
+    dismiss: () => act("dismiss"),
+    turn() {},
+    setLook(partial) {
+      state = { ...state, look: writeBlob({ ...state.look, ...partial }, state.memory).look, turning: false, pending: null, pendingMemory: null };
+      paint();
+    },
+    getBlob: () => writeBlob(state.look, state.memory),
+    setBlob(blob) {
+      const next = readBlob(blob);
+      state = { ...state, look: next.look, memory: next.memory, turning: false, pending: null, pendingMemory: null };
+      paint();
+    },
+    dispose() {
+      motion.stop();
+      if (node.parentNode) node.parentNode.removeChild(node);
+    }
+  };
+}
+
+function mountWith(element, THREE, options = {}, env = {}) {
+  if (!element) throw new TypeError("Helferlein: mount needs an element");
+  if (!THREE || !THREE.WebGLRenderer) throw new Error("Helferlein: Three.js did not load");
+  const doc = env.document || element.ownerDocument || globalThis.document;
+  const now = env.now || (() => performance.now());
+  const requestFrame = env.requestFrame || (fn => requestAnimationFrame(fn));
+  const cancelFrame = env.cancelFrame || (id => cancelAnimationFrame(id));
+  const motion = motionPreference(options, env);
+  const ownCanvas = element.tagName !== "CANVAS";
+  const canvas = ownCanvas ? doc.createElement("canvas") : element;
+  if (ownCanvas) element.appendChild(canvas);
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  } catch (error) {
+    if (ownCanvas && canvas.parentNode === element) element.removeChild(canvas);
+    return mountFallback(ownCanvas ? element : (element.parentNode || element), motion, doc, error);
+  }
+  renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio || 1, 2));
   renderer.setClearColor(0x000000, 0);
   if (THREE.SRGBColorSpace) renderer.outputColorSpace = THREE.SRGBColorSpace;
   if (THREE.ACESFilmicToneMapping) {
@@ -112,7 +242,7 @@ function mount(element, THREE) {
   rig.add(pivot);
   scene.add(rig);
   let pivotY = 1.2;
-  const draw = createDraw(THREE);
+  const draw = createDraw(THREE, env.createCanvas ? { createCanvas: env.createCanvas } : {});
   let state = fresh();
   let spin = null;
   let pose = { y: -0.22, s: 0.6 };
@@ -122,12 +252,17 @@ function mount(element, THREE) {
   let earPlan = null;
   let raf = 0;
 
+  // Reduced motion: a spin starts already finished, so the look changes in one frame.
+  function spinStart() {
+    return motion.calm ? now() - SPIN_MS : now();
+  }
+
   function goal() {
     return state.presence === "present" ? { y: 0, s: 1 } : { y: -0.22, s: 0.6 };
   }
 
   function rebuild() {
-    const look = screenLook(state, performance.now());
+    const look = screenLook(state, now(), motion.calm);
     drawnFace = look.expression;
     clearGroup(inner);
     const activity = state.presence === "present" ? state.activity : "idle";
@@ -178,7 +313,7 @@ function mount(element, THREE) {
       finishSpin();
     }
     if (action === "applied" && state.turning && !prevTurning) {
-      spin = { t0: performance.now(), shown: false, pending: state.pending, memory: state.pendingMemory };
+      spin = { t0: spinStart(), shown: false, pending: state.pending, memory: state.pendingMemory };
     }
     if (next.changed || action === "dismiss" || (action === "applied" && state.turning)) rebuild();
     return state;
@@ -196,7 +331,7 @@ function mount(element, THREE) {
       pendingMemory: next.memory,
       changed: "look"
     };
-    spin = { t0: performance.now(), shown: false, pending: next.look, memory: next.memory };
+    spin = { t0: spinStart(), shown: false, pending: next.look, memory: next.memory };
     rebuild();
     pose = { ...goal() };
     target = { ...goal() };
@@ -205,10 +340,12 @@ function mount(element, THREE) {
     return spinPromise();
   }
 
-  function frame(now) {
-    const dt = lastNow ? Math.min(0.05, (now - lastNow) / 1000) : 0.016;
-    lastNow = now;
-    const stepped = stepTurn(state, spin, now);
+  function frame(stamp) {
+    const t0 = env.now ? now() : stamp;
+    const dt = lastNow ? Math.min(0.05, (t0 - lastNow) / 1000) : 0.016;
+    lastNow = t0;
+    const calm = motion.calm;
+    const stepped = stepTurn(state, spin, t0);
     state = stepped.state;
     spin = stepped.spin;
     if (!spin) finishSpin();
@@ -219,11 +356,11 @@ function mount(element, THREE) {
     if (state.activity === "summoned" && Math.abs(pose.s - target.s) < 0.03) {
       state = { ...state, activity: "idle", last: "Idle.", changed: "" };
     }
-    const faceNow = screenLook(state, now).expression;
+    const faceNow = screenLook(state, t0, calm).expression;
     if (faceNow !== drawnFace) rebuild();
-    const t = now / 1000;
+    const t = t0 / 1000;
     const present = state.presence === "present";
-    const bobAmp = present ? (state.activity === "working" ? 0.05 : 0.028) : 0;
+    const bobAmp = present && !calm ? (state.activity === "working" ? 0.05 : 0.028) : 0;
     const bobSpeed = state.activity === "working" ? 6.2 : 2.05;
     const follow = 1 - Math.pow(0.0015, dt);
     if (!earPlan) earPlan = { t0: t - 1, side: Math.random() < 0.5 ? -1 : 1, gap: 6 + Math.random() * 8 };
@@ -234,20 +371,27 @@ function mount(element, THREE) {
     }
     const earKick = earFlick(t - earPlan.t0);
     const beat = Math.sin(t * 2.8);
-    pose.y += (target.y - pose.y) * follow;
-    pose.s += (target.s - pose.s) * follow;
+    if (calm) {
+      pose.y = target.y;
+      pose.s = target.s;
+    } else {
+      pose.y += (target.y - pose.y) * follow;
+      pose.s += (target.s - pose.s) * follow;
+    }
     rig.position.y = pose.y;
     rig.scale.setScalar(Math.max(0.05, pose.s));
     pivot.rotation.set(userPitch, stepped.yaw + userYaw, 0);
     inner.position.y = -pivotY + Math.sin(t * bobSpeed) * bobAmp;
-    inner.rotation.x = !spin && present && state.activity === "working" ? Math.sin(t * 2.4) * 0.045 : 0;
-    inner.rotation.z = !spin && present ? Math.sin(t * 1.15) * 0.028 : 0;
+    inner.rotation.x = !calm && !spin && present && state.activity === "working" ? Math.sin(t * 2.4) * 0.045 : 0;
+    inner.rotation.z = !calm && !spin && present ? Math.sin(t * 1.15) * 0.028 : 0;
+    // Reduced motion: the propeller and the dish stand still, wings and ears hold their rest angle.
+    const live = calm ? 0 : 1;
     inner.traverse(obj => {
-      if (obj.name === "propeller") obj.rotation.y += dt * 8;
-      if (obj.name === "antenna") obj.rotation.y += dt * 0.45;
-      if (obj.name === "wing") obj.rotation.y = obj.userData.back + beat * obj.userData.flap;
+      if (obj.name === "propeller") obj.rotation.y += dt * 8 * live;
+      if (obj.name === "antenna") obj.rotation.y += dt * 0.45 * live;
+      if (obj.name === "wing") obj.rotation.y = obj.userData.back + beat * obj.userData.flap * live;
       if (obj.name === "ear") {
-        obj.rotation.z = obj.userData.base + (obj.userData.side === earPlan.side ? earKick : 0) * obj.userData.amp;
+        obj.rotation.z = obj.userData.base + (obj.userData.side === earPlan.side ? earKick : 0) * obj.userData.amp * live;
       }
     });
     const w = element.clientWidth || canvas.clientWidth;
@@ -258,13 +402,17 @@ function mount(element, THREE) {
       camera.updateProjectionMatrix();
     }
     renderer.render(scene, camera);
-    raf = requestAnimationFrame(frame);
+    raf = requestFrame(frame);
   }
 
   rebuild();
-  raf = requestAnimationFrame(frame);
+  raf = requestFrame(frame);
 
   return {
+    webgl: true,
+    get reducedMotion() {
+      return motion.calm;
+    },
     summon: () => act("summon"),
     working: () => act("working"),
     idle: () => act("idle"),
@@ -293,7 +441,7 @@ function mount(element, THREE) {
       rig.position.y = 0;
       rig.scale.setScalar(1);
       spin = {
-        t0: performance.now() - revealPortion() * SPIN_MS,
+        t0: motion.calm ? spinStart() : now() - revealPortion() * SPIN_MS,
         shown: true,
         pending: state.look,
         memory: state.memory
@@ -321,11 +469,13 @@ function mount(element, THREE) {
       rebuild();
     },
     dispose() {
-      cancelAnimationFrame(raf);
+      cancelFrame(raf);
+      motion.stop();
       clearGroup(inner);
       renderer.dispose();
+      if (ownCanvas && canvas.parentNode === element) element.removeChild(canvas);
     }
   };
 }
 
-export { bodyCenterY, mount, screenPad };
+export { bodyCenterY, motionPreference, mountFallback, mountWith, screenPad };

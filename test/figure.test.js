@@ -1,16 +1,13 @@
 import assert from "node:assert/strict";
-import { createRequire } from "node:module";
 import test from "node:test";
 import { catalogBuilder, catalogNames } from "../src/catalog.js";
 import { bindCatalog } from "../src/draw.js";
-import { bodyCenterY, mount, screenPad } from "../src/figure.js";
+import * as THREE from "three";
+import { bodyCenterY, mountWith, screenPad } from "../src/figure.js";
 import { fresh, reduce } from "../src/machine.js";
 import { SOCKETS, earFlick, screenLook, stepTurn } from "../src/motion.js";
 import { SHAPES, TOOLS, defaultLook } from "../src/roll.js";
 
-const require = createRequire(import.meta.url);
-require("../prototype/three.min.js");
-const THREE = globalThis.THREE;
 
 function createCanvas(w, h) {
   const ctx = {
@@ -41,7 +38,7 @@ function finitePoint(point) {
 }
 
 test("every catalog part builds one group", () => {
-  assert.equal(typeof mount, "function");
+  assert.equal(typeof mountWith, "function");
   for (const kind of ["shape", "clothes", "tool", "extra"]) {
     for (const name of catalogNames(kind)) {
       const group = catalogBuilder(kind, name)();

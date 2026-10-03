@@ -1,6 +1,8 @@
-import { mount } from "../src/figure.js?v=3";
-import { blankMemory, defaultLook, rollFrom } from "../src/roll.js";
+// The figure comes from the script-tag build (dist/helferlein.min.js), as on any host page.
 import { blankStore, loadStore, saveStore } from "./store.js";
+
+if (!globalThis.Helferlein) throw new Error("dist/helferlein.min.js did not load. Run npm run build.");
+const { blankMemory, defaultLook, mount, rollFrom } = globalThis.Helferlein;
 
 const GREETING = "Hi, I am Helferlein. Type a message below and I will act as if I am working on it.";
 const THINKING = "Working on what you wrote. This pause is on purpose, so you can see the working pose. I am not calling a model.";
@@ -18,7 +20,7 @@ const say = document.getElementById("say");
 const summon = document.getElementById("summon");
 let figure;
 try {
-  figure = mount(stage, globalThis.THREE);
+  figure = mount(stage);
 } catch (error) {
   const note = document.createElement("p");
   note.className = "boot-error";

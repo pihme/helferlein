@@ -40,11 +40,12 @@ function stepTurn(state, spin, now) {
   return { state: next, spin: current, yaw: step.done ? 0 : step.yaw, rebuilt };
 }
 
-function screenLook(state, nowMs) {
+// Reduced motion holds the working face on focused instead of pulsing.
+function screenLook(state, nowMs, calm = false) {
   const look = { ...state.look };
   if (state.presence !== "present") look.expression = "Resting";
   else if (state.activity === "working" && !state.turning) {
-    look.expression = Math.floor(nowMs / 1000 / 0.45) % 2 === 0 ? "Focused" : "Determined";
+    look.expression = calm || Math.floor(nowMs / 1000 / 0.45) % 2 === 0 ? "Focused" : "Determined";
   }
   return look;
 }
