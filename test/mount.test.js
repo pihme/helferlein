@@ -5,7 +5,7 @@ import { fitCanvas, motionPreference, mountWith } from "../src/figure.js";
 import { screenLook } from "../src/motion.js";
 import { blankMemory, defaultLook } from "../src/roll.js";
 
-function fakeNode(tagName) {
+function fakeNode(tagName, context = null) {
   return {
     tagName,
     parentNode: null,
@@ -20,7 +20,7 @@ function fakeNode(tagName) {
     appendChild(child) { child.parentNode = this; this.children.push(child); return child; },
     removeChild(child) { this.children = this.children.filter(c => c !== child); child.parentNode = null; return child; },
     // A browser without WebGL hands out no context.
-    getContext: () => null
+    getContext: () => context
   };
 }
 
@@ -29,11 +29,15 @@ const ctx = {
   putImageData() {}, fillRect() {}, beginPath() {}, arc() {}, ellipse() {}, fill() {}, moveTo() {}, lineTo() {}
 };
 
-function harness() {
+// `webgl: false` is a browser that hands out no WebGL context.
+function harness({ webgl = true } = {}) {
   const frames = [];
   const clock = { t: 1000 };
+  const warnings = [];
+  const gl = { getExtension: () => ({ loseContext() {} }) };
   const env = {
-    document: { createElement: tag => fakeNode(tag.toUpperCase()) },
+    document: { createElement: tag => fakeNode(tag.toUpperCase(), webgl ? gl : null) },
+    console: { warn: message => warnings.push(message) },
     createCanvas: (w, h) => ({ width: w, height: h, getContext: () => ctx }),
     now: () => clock.t,
     requestFrame: fn => { frames.push(fn); return frames.length; },
@@ -44,7 +48,7 @@ function harness() {
     const fn = frames.shift();
     if (fn) fn(clock.t);
   };
-  return { env, step, clock };
+  return { env, step, clock, warnings };
 }
 
 class FakeRenderer {
@@ -65,7 +69,7 @@ function rigOf() {
 const settle = () => new Promise(resolve => setImmediate(resolve));
 
 test("without WebGL the figure falls back to a still silhouette and keeps the host contract", async () => {
-  const { env } = harness();
+  const { env, warnings } = harness({ webgl: false });
   const host = fakeNode("DIV");
   const figure = mountWith(host, THREE, {}, env);
   assert.equal(figure.webgl, false);
@@ -193,7 +197,7 @@ test("the WebGL figure, the fallback and types/index.d.ts offer the same members
   const declared = [...body.matchAll(/^\s+(?:readonly )?(\w+)\??[(:]/gm)].map(m => m[1]).sort();
   const { env } = harness();
   const gl = mountWith(fakeNode("DIV"), FAKE_THREE, {}, env);
-  const still = mountWith(fakeNode("DIV"), THREE, {}, harness().env);
+  const still = mountWith(fakeNode("DIV"), THREE, {}, harness({ webgl: false }).env);
   const optional = new Set(["error"]);
   assert.deepEqual(Object.keys(gl).sort(), declared.filter(k => !optional.has(k)));
   assert.deepEqual(Object.keys(still).sort(), declared);
@@ -226,3 +230,101 @@ test("the canvas shows at its container's size, whatever the pixel ratio", () =>
   fitCanvas(styled, false);
   assert.equal(styled.style.width, undefined);
 });
+
+test("turn ignores non-finite input, so the figure never vanishes", () => {
+  const { env, step, warnings } = harness();
+  const figure = mountWith(fakeNode("DIV"), FAKE_THREE, { reducedMotion: true }, env);
+  figure.summon();
+  step();
+  const pivot = rigOf().children[0];
+  for (const [yaw, pitch] of [[NaN, 0], [0, NaN], [Infinity, 0], ["1", 0], [undefined, 0]]) figure.turn(yaw, pitch);
+  assert.equal(warnings.length, 5);
+  assert.match(warnings[0], /^Helferlein: turn\(\) needs finite numbers/);
+  step();
+  assert.equal(pivot.rotation.y, 0);
+  assert.equal(pivot.rotation.x, 0);
+  figure.turn(0.5, 0.25);
+  step();
+  assert.ok(Math.abs(pivot.rotation.y - 0.5) < 1e-9);
+  assert.ok(Math.abs(pivot.rotation.x - 0.25) < 1e-9);
+  assert.equal(warnings.length, 5);
+  figure.dispose();
+});
+
+test("without WebGL the renderer is never created, and --mesh-pad is set", () => {
+  const { env, warnings } = harness({ webgl: false });
+  let created = 0;
+  const three = { ...THREE, WebGLRenderer: class { constructor() { created += 1; } } };
+  const host = fakeNode("DIV");
+  const figure = mountWith(host, three, {}, env);
+  assert.equal(created, 0);
+  assert.equal(figure.webgl, false);
+  assert.match(String(figure.error), /WebGL 2 is not available/);
+  // 320x360: the square silhouette is centered, its foot 5/32 above the square's bottom edge.
+  assert.equal(host.style.props["--mesh-pad"], ((20 + 320 * 5 / 32) / 360).toFixed(4));
+  figure.summon();
+  assert.deepEqual(warnings, []);
+  figure.dispose();
+});
+
+for (const webgl of [true, false]) {
+  const kind = webgl ? "WebGL figure" : "fallback";
+
+  test(`${kind}: misuse warns once per call instead of passing silently`, async () => {
+    const { env, step, warnings } = harness({ webgl });
+    const three = webgl ? FAKE_THREE : THREE;
+    const host = fakeNode("DIV");
+    const figure = mountWith(host, three, { reducedMotion: true }, env);
+    for (const name of ["working", "idle", "dismiss"]) figure[name]();
+    assert.equal(warnings.length, 3);
+    assert.match(warnings[0], /working\(\) does nothing before summon\(\)/);
+    assert.equal(figure.getBlob().look.hue, defaultLook().hue);
+
+    figure.summon();
+    step();
+    const before = figure.getBlob();
+    await figure.applied();
+    assert.equal(warnings.length, 4);
+    assert.match(warnings[3], /applied\(\) without working\(\) first does nothing/);
+    assert.deepEqual(figure.getBlob(), before);
+
+    // A second mount on the same element replaces the figure instead of stacking.
+    const again = mountWith(host, three, { reducedMotion: true }, env);
+    assert.equal(warnings.length, 5);
+    assert.match(warnings[4], /already has a figure/);
+    assert.equal(host.children.length, 1);
+    assert.equal(figure.summon(), undefined);
+    assert.match(warnings[5], /summon\(\) after dispose\(\) does nothing/);
+    await figure.applied();
+    figure.setBlob(before);
+    assert.equal(warnings.length, 8);
+    again.dispose();
+    again.dispose();
+    assert.equal(host.children.length, 0);
+    assert.equal(warnings.length, 8);
+
+    const empty = { ...fakeNode("DIV"), clientWidth: 0, clientHeight: 0 };
+    mountWith(empty, three, {}, env).dispose();
+    assert.match(warnings[8], /mount\(\) on an element without a size \(0x0\)/);
+  });
+
+  test(`${kind}: the documented flow stays quiet`, async () => {
+    const { env, step, warnings } = harness({ webgl });
+    const figure = mountWith(fakeNode("DIV"), webgl ? FAKE_THREE : THREE, { reducedMotion: true }, env);
+    figure.summon();
+    figure.summon();
+    step();
+    figure.working();
+    const done = figure.applied();
+    step();
+    await settle();
+    await done;
+    figure.idle();
+    figure.turn(0.1);
+    figure.setLook({ hue: 400 });
+    assert.equal(figure.getBlob().look.hue, 40);
+    figure.dismiss();
+    figure.dispose();
+    assert.deepEqual(warnings, []);
+  });
+}

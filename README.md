@@ -106,7 +106,7 @@ Without a bundler, an import map points `three` at a three.js module build (from
 </script>
 ```
 
-`mount(element, options)` draws into `element` (a container, or a `<canvas>`), so give the element a size. In a container it adds a canvas that fills it at any pixel ratio, without CSS from the page. A `<canvas>` passed in keeps its CSS size, or, without one, the size of its `width` and `height` attributes. It sets the CSS variable `--mesh-pad` on the element: the fraction of the view below the figure's lowest point, for placing it against an edge.
+`mount(element, options)` draws into `element` (a container, or a `<canvas>`), so give the element a size. In a container it adds a canvas that fills it at any pixel ratio, without CSS from the page. A `<canvas>` passed in keeps its CSS size, or, without one, the size of its `width` and `height` attributes. It sets the CSS variable `--mesh-pad` on the element, also on the no-WebGL fallback: the fraction of the view below the figure's lowest point, for placing it against an edge. One element holds one figure: mounting it again disposes the old figure first, and an element without a size gets a warning in the console.
 
 | Option | Default | Effect |
 | --- | --- | --- |
@@ -127,6 +127,8 @@ The host drives every motion; the avatar watches no files, processes, or network
 
 *Applied* means the finished work is what the person now sees, for example after the host reloaded the page. It is the only event that rolls a new look.
 
+A call that cannot do anything does nothing and logs one `console.warn` starting with `Helferlein:`: `working()`, `idle()`, `dismiss()` or `applied()` before `summon()`, `applied()` without `working()` first, `turn()` with a value that is not a finite number, and any call after `dispose()` (except `getBlob()`). Nothing throws for these.
+
 ### The stored roll
 
 The look and its memory (what just changed, the locks, the absent streaks) are one plain JSON blob, `{ look, memory }`. The host decides where to keep it. The hue is a whole number of degrees, 0 to 359: `setLook`, `setBlob` and `rollFrom` round any other finite number and wrap it around the wheel (`-5` becomes `355`, `360` becomes `0`); a hue that is not a number is rejected.
@@ -138,8 +140,8 @@ The look and its memory (what just changed, the locks, the absent streaks) are o
 | `watchReveal(fn)` | Calls `fn` once, at the moment the new look appears during the next spin. The demo saves the roll and reloads the page there. |
 | `returnFromBack()` | After such a reload: the figure starts facing away and turns back to the viewer. Returns a promise. |
 | `setLook(partial)` | Sets parts of the look directly, for example `{ hue: 30 }`, without a spin. The memory is kept. It checks the values like `setBlob`. |
-| `turn(yaw, pitch)` | Rotates the figure by the given radians; pitch stops at 70°. The wardrobe uses it for dragging. |
-| `dispose()` | Stops the animation loop, frees the renderer, and removes what `mount` added. |
+| `turn(yaw, pitch)` | Rotates the figure by the given radians; pitch stops at 70°. Values that are not finite numbers are ignored. The wardrobe uses it for dragging. |
+| `dispose()` | Stops the animation loop, frees the renderer, and removes what `mount` added. A second `dispose()` does nothing. |
 
 The module also exports `rollFrom(look, memory)` (one roll, as `applied()` does; it checks the look like `setBlob` and throws a `TypeError` without one), `defaultLook()`, `blankMemory()`, and the catalog lists `SHAPES`, `ROLL_EXPRESSIONS`, `CLOTHES`, `TOOLS`, `EXTRAS`. On the figure, `webgl` and `reducedMotion` tell the host which mode it runs in.
 
@@ -150,7 +152,7 @@ TypeScript declarations ship with the package (`types/index.d.ts`, the `types` e
 ### Reduced motion and no WebGL
 
 - **Reduced motion** (`prefers-reduced-motion: reduce`, or `reducedMotion: true`): nothing floats, sways, or flaps, the swoop and the fold are cuts, the working face holds on focused, and `applied()` shows the new look at once and resolves without a spin. The events and the stored roll work the same.
-- **No WebGL:** `mount` does not throw. It returns a still silhouette in the look's colors (`figure.webgl === false`, the cause in `figure.error`), with the class `helferlein-fallback` and `data-presence` / `data-activity` attributes for the host's CSS. The events, `applied()` and the stored roll work the same; a new roll changes the colors at once.
+- **No WebGL:** `mount` does not throw, and it asks for a WebGL 2 context before it creates the three.js renderer, so the console stays free of WebGL errors. It returns a still silhouette in the look's colors (`figure.webgl === false`, the cause in `figure.error`), with the class `helferlein-fallback` and `data-presence` / `data-activity` attributes for the host's CSS. The events, `applied()` and the stored roll work the same; a new roll changes the colors at once.
 
 ## Build and test
 

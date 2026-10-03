@@ -106,9 +106,97 @@ function commitPending(state) {
   return { ...state, look: state.pending, memory: state.pendingMemory, turning: false, pending: null, pendingMemory: null };
 }
 
+// One figure per element: a second mount disposes the first instead of stacking canvases.
+const mounted = new WeakMap();
+
+function warner(env) {
+  const out = env.console || globalThis.console;
+  return message => { if (out && out.warn) out.warn(`Helferlein: ${message}`); };
+}
+
+// Ask a scratch canvas for WebGL 2 first. Three.js logs console errors when it cannot get a
+// context; with this check the page sees no errors, only the fallback.
+function webglAvailable(doc) {
+  try {
+    const probe = doc.createElement("canvas");
+    const gl = probe && probe.getContext ? probe.getContext("webgl2") : null;
+    if (!gl) return false;
+    const lose = gl.getExtension ? gl.getExtension("WEBGL_lose_context") : null;
+    if (lose) lose.loseContext();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// The host contract around both figures: calls that cannot do anything warn once each time
+// instead of passing silently, and nothing runs after dispose().
+function guard(api, peek, warn, onDispose) {
+  let disposed = false;
+  const out = Object.defineProperties({}, Object.getOwnPropertyDescriptors(api));
+  const live = (name, fn, after) => (...args) => {
+    if (disposed) {
+      warn(`${name}() after dispose() does nothing; mount the element again`);
+      return after;
+    }
+    return fn(...args);
+  };
+  const present = name => {
+    if (peek().presence === "present") return true;
+    warn(`${name}() does nothing before summon(); call summon() first`);
+    return false;
+  };
+  const done = () => Promise.resolve();
+  out.summon = live("summon", () => api.summon());
+  for (const name of ["working", "idle", "dismiss"]) {
+    out[name] = live(name, () => (present(name) ? api[name]() : peek()));
+  }
+  out.applied = (blob) => {
+    if (disposed) {
+      warn("applied() after dispose() does nothing; mount the element again");
+      return done();
+    }
+    if (blob) return api.applied(blob);
+    if (!present("applied")) return done();
+    const state = peek();
+    if (!state.turning && state.activity !== "working") {
+      warn("applied() without working() first does nothing; call working() while the work runs, or pass a roll: applied({ look, memory })");
+    }
+    return api.applied();
+  };
+  out.returnFromBack = live("returnFromBack", () => api.returnFromBack(), done());
+  out.watchReveal = live("watchReveal", fn => api.watchReveal(fn));
+  out.setLook = live("setLook", partial => api.setLook(partial));
+  out.setBlob = live("setBlob", blob => api.setBlob(blob));
+  out.turn = live("turn", (yaw, pitch = 0) => {
+    if (!Number.isFinite(yaw) || !Number.isFinite(pitch)) {
+      warn(`turn() needs finite numbers (radians), got ${String(yaw)}, ${String(pitch)}; ignored`);
+      return;
+    }
+    api.turn(yaw, pitch);
+  });
+  out.dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    api.dispose();
+    onDispose();
+  };
+  return out;
+}
+
+// The figure's lowest point in the fallback: the silhouette ends at 27 of 32 viewBox units, and the
+// square SVG is centered in the element.
+function fallbackPad(element) {
+  const w = element.clientWidth || 0;
+  const h = element.clientHeight || 0;
+  if (!w || !h) return 5 / 32;
+  const side = Math.min(w, h);
+  return ((h - side) / 2 + side * (5 / 32)) / h;
+}
+
 // Without WebGL the figure is a still silhouette in the look's colors. The host contract
 // and the stored roll work the same: applied rolls and swaps the look at once.
-function mountFallback(element, motion, doc, error) {
+function mountFallback(element, motion, doc, error, padTarget = element, warn = () => {}, onDispose = () => {}) {
   const node = doc.createElement("div");
   node.className = "helferlein-fallback";
   node.setAttribute("role", "img");
@@ -127,6 +215,9 @@ function mountFallback(element, motion, doc, error) {
     node.style.setProperty("--helferlein-face", hsl(look.faceS, look.faceL));
     node.dataset.presence = state.presence;
     node.dataset.activity = state.activity === "summoned" ? "idle" : state.activity;
+    if (padTarget.style && padTarget.style.setProperty) {
+      padTarget.style.setProperty("--mesh-pad", fallbackPad(padTarget).toFixed(4));
+    }
   }
 
   function reveal() {
@@ -148,7 +239,7 @@ function mountFallback(element, motion, doc, error) {
   }
 
   paint();
-  return {
+  const api = {
     webgl: false,
     error,
     get reducedMotion() {
@@ -193,6 +284,7 @@ function mountFallback(element, motion, doc, error) {
       if (node.parentNode) node.parentNode.removeChild(node);
     }
   };
+  return guard(api, () => state, warn, onDispose);
 }
 
 // The renderer sizes only the drawing buffer (width x height x pixel ratio). Without a CSS size a
@@ -227,8 +319,25 @@ function mountWith(element, THREE, options = {}, env = {}) {
   const now = env.now || (() => performance.now());
   const requestFrame = env.requestFrame || (fn => requestAnimationFrame(fn));
   const cancelFrame = env.cancelFrame || (id => cancelAnimationFrame(id));
-  const motion = motionPreference(options, env);
+  const warn = warner(env);
+  const previous = mounted.get(element);
+  if (previous) {
+    warn("mount() on an element that already has a figure; the old figure is disposed first");
+    previous.dispose();
+  }
   const ownCanvas = element.tagName !== "CANVAS";
+  if (ownCanvas && !(element.clientWidth > 0 && element.clientHeight > 0)) {
+    warn(`mount() on an element without a size (${element.clientWidth || 0}x${element.clientHeight || 0}); give it a width and a height`);
+  }
+  const motion = motionPreference(options, env);
+  let figure = null;
+  const forget = () => { if (mounted.get(element) === figure) mounted.delete(element); };
+  const fallback = error => {
+    figure = mountFallback(ownCanvas ? element : (element.parentNode || element), motion, doc, error, element, warn, forget);
+    mounted.set(element, figure);
+    return figure;
+  };
+  if (!webglAvailable(doc)) return fallback(new Error("Helferlein: WebGL 2 is not available"));
   const canvas = ownCanvas ? doc.createElement("canvas") : element;
   if (ownCanvas) element.appendChild(canvas);
   // Before the renderer: setting the pixel ratio resizes the buffer.
@@ -239,7 +348,7 @@ function mountWith(element, THREE, options = {}, env = {}) {
   } catch (error) {
     restoreSize();
     if (ownCanvas && canvas.parentNode === element) element.removeChild(canvas);
-    return mountFallback(ownCanvas ? element : (element.parentNode || element), motion, doc, error);
+    return fallback(error);
   }
   renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio || 1, 2));
   renderer.setClearColor(0x000000, 0);
@@ -436,7 +545,7 @@ function mountWith(element, THREE, options = {}, env = {}) {
   rebuild();
   raf = requestFrame(frame);
 
-  return {
+  const api = {
     webgl: true,
     get reducedMotion() {
       return motion.calm;
@@ -505,6 +614,9 @@ function mountWith(element, THREE, options = {}, env = {}) {
       if (ownCanvas && canvas.parentNode === element) element.removeChild(canvas);
     }
   };
+  figure = guard(api, () => state, warn, forget);
+  mounted.set(element, figure);
+  return figure;
 }
 
 export { bodyCenterY, fitCanvas, motionPreference, mountFallback, mountWith, screenPad };

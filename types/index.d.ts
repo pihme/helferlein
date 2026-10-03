@@ -60,24 +60,25 @@ export interface MountOptions {
 export interface Figure {
   /** `false` when the browser gave no WebGL context: the figure is then a still silhouette. */
   readonly webgl: boolean;
-  /** Only on the fallback: why WebGL failed. */
+  /** Only on the fallback: why WebGL failed (for example, no WebGL 2 context). */
   readonly error?: unknown;
   /** Whether the figure currently runs calm (reduced motion). */
   readonly reducedMotion: boolean;
 
   /** Swoop out of the resting form, then idle. */
   summon(): void;
-  /** Working pose; the face pulses between focused and determined. Only while summoned. */
+  /** Working pose; the face pulses between focused and determined. Only while summoned; before `summon()` it warns and does nothing. */
   working(): void;
-  /** Back to idle from working; the look stays. */
+  /** Back to idle from working; the look stays. Before `summon()` it warns and does nothing. */
   idle(): void;
   /**
-   * The finished work is on the page. Without an argument: only after `working()`, rolls a new look.
+   * The finished work is on the page. Without an argument: only after `working()`, rolls a new look;
+   * otherwise it warns and resolves without a new look.
    * With a blob: shows that roll. The look changes while the back faces the viewer.
    * Resolves when the spin has ended (at once with reduced motion or without WebGL).
    */
   applied(blob?: LookBlob): Promise<void>;
-  /** Fold back into the resting form. Before the reveal, the previous look is kept. */
+  /** Fold back into the resting form. Before the reveal, the previous look is kept. Warns when not summoned. */
   dismiss(): void;
 
   /** Call `fn` once, when the new look appears during the next spin. */
@@ -91,15 +92,16 @@ export interface Figure {
   setBlob(blob: LookBlob): void;
   /** Set parts of the look directly, without a spin. The memory is kept. Checked like `setBlob`. */
   setLook(partial: Partial<Look>): void;
-  /** Rotate the figure by these radians (yaw, then pitch, which stops at 70 degrees). */
+  /** Rotate the figure by these radians (yaw, then pitch, which stops at 70 degrees). Non-finite values are ignored with a warning. */
   turn(yaw: number, pitch?: number): void;
-  /** Stop the animation loop, free the renderer, and remove what `mount` added. */
+  /** Stop the animation loop, free the renderer, and remove what `mount` added. Afterwards every call except `getBlob` warns and does nothing. */
   dispose(): void;
 }
 
 /**
  * Draw the figure into `element` (a sized container, or a canvas). It starts in the resting form.
  * Without WebGL it returns a still fallback (`webgl: false`) instead of throwing.
+ * A second mount on the same element disposes the first figure, with a warning. An element without a size gets a warning.
  */
 export function mount(element: HTMLElement, options?: MountOptions): Figure;
 
