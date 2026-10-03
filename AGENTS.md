@@ -8,7 +8,7 @@ This file is for the coding agent working in this repo. Read it at the start of 
 
 This tree is the product. README and SPEC stay standalone: do not name a host application, a habitat, or an idea garden. The host contract in SPEC.md is how a page uses the avatar. Do not special-case one host inside the avatar.
 
-Implementation follows `design/implementation.md`. Start at its `Next` stop. License is not chosen. Do not add one.
+Implementation follows `design/implementation.md`. Start at its `Next` stop. License is PolyForm Noncommercial 1.0.0 (`LICENSE`). Do not change it.
 
 ## How to work here
 

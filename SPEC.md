@@ -7,7 +7,7 @@ An animated 3D avatar that a page can use as a visible helper. Status: spec only
 **Helferlein** is everyday German for “little helper.”
 
 - Nearby, not this product: Gyro Gearloose’s Little Helper is called Helferlein in German, including a 3D-print figure. Many small tools use the word. One of them is an accounting GUI. HelferAI is a company.
-- License: not chosen.
+- License: [PolyForm Noncommercial 1.0.0](LICENSE).
 
 ## 2. Problem
 
@@ -146,7 +146,6 @@ The color rules above are rules. The lightness and chroma numbers, and the warm/
 - The base drawing.
 - The lightness and chroma numbers for each color role.
 - Where the warm/cool cut sits in the green band.
-- License.
 - The tool meshes need another pass.
 - The holding position of each tool needs another pass.
 - Some extras sit wrong and need another pass at placement.

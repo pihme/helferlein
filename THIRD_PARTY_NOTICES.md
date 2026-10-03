@@ -1,6 +1,6 @@
 # Third-party software
 
-Helferlein's own license is not chosen yet (see [README](README.md)). This file lists the third-party software it contains or runs, with the notices their licenses ask for.
+Helferlein itself is licensed under [PolyForm Noncommercial 1.0.0](LICENSE). This file lists the third-party software it contains or runs, with the notices their licenses ask for.
 
 ## Contained in this repository
 

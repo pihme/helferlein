@@ -10,4 +10,4 @@ The drawing is not settled. Reference sketches, not a design: [sheet](assets/hel
 
 A demo in this repo has two pages under one navigation bar. The demo page explains the avatar. Its resting figure sits in the bottom right. Opening it shows a chat inset from the corner, and the figure centers above that chat. Sending a message makes the figure work and answer, then reload while it faces away, with a new look and a new background. Wardrobe puts body, face, and color on the left of the figure, and clothes, tool, and extra on the right. A button under the figure runs one roll, and choosing a part plays the same turn. [SPEC.md](SPEC.md) is the product spec.
 
-License: not chosen yet.
+License: [PolyForm Noncommercial 1.0.0](LICENSE).
