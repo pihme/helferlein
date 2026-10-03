@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Helferlein: an animated 3D avatar for web pages</title>
+  <meta name="description" content="Animated 3D avatar.">
+  <link rel="icon" href="data:,">
+  <style>
+    :root { color-scheme: light; --ink: #1c2430; --soft: #5c6774; --accent: #c9822b; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; color: var(--ink); font: 17px/1.5 system-ui, sans-serif;
+      background:
+        radial-gradient(880px 520px at 12% -8%, rgba(255, 255, 255, .75), transparent 58%),
+        radial-gradient(720px 480px at 100% 110%, #d7ebe3, transparent 56%),
+        linear-gradient(165deg, #f7f2e8 0%, #f4efe6 46%, #e3eef6 100%);
+      min-height: 100vh;
+    }
+    main { max-width: 980px; margin: 0 auto; padding: 48px 24px 64px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 32px; align-items: center; }
+    h1 { font-size: 44px; line-height: 1.1; margin: 0 0 12px; }
+    p { margin: 0 0 14px; }
+    .lede { font-size: 20px; color: var(--soft); }
+    #stage { height: 380px; cursor: pointer; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0; }
+    .actions a { text-decoration: none; padding: 10px 18px; border-radius: 999px; font-weight: 600; }
+    .primary { background: var(--ink); color: #fff; }
+    .secondary { background: #fff; color: var(--ink); box-shadow: 0 4px 14px rgba(30, 40, 50, .12); }
+    pre { background: #1c2430; color: #f4efe6; padding: 14px 16px; border-radius: 12px; overflow-x: auto; font-size: 14px; }
+    footer { grid-column: 1 / -1; color: var(--soft); font-size: 14px; }
+    footer a { color: inherit; }
+    @media (max-width: 760px) { main { grid-template-columns: 1fr; } #stage { height: 300px; order: -1; } }
+  </style>
+</head>
+<body>
+  <main>
+    <section>
+      <h1>Helferlein</h1>
+      <p class="lede">An animated 3D avatar that a web page can summon as a visible helper.</p>
+      <p>It swoops in, idles while it waits, and holds a working pose while work is in progress. When the result is on the page, it spins, and a new look appears while its back faces you. Click the figure to see a turn.</p>
+      <div class="actions">
+        <a class="primary" href="demo/demo.html">Open the demo</a>
+        <a class="secondary" href="demo/wardrobe.html">Open the wardrobe</a>
+        <a class="secondary" href="https://github.com/pihme/helferlein#readme">Read the docs</a>
+      </div>
+      <pre><code>&lt;script src="https://pihme.github.io/helferlein/dist/helferlein.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  const figure = Helferlein.mount(document.getElementById("helper"));
+  figure.summon();
+&lt;/script&gt;</code></pre>
+    </section>
+    <div id="stage" role="button" tabindex="0" aria-label="Helferlein: click for a new look"></div>
+    <footer>
+      Built from <code>main</code>. Releases with a fixed version: <a href="https://github.com/pihme/helferlein/releases">GitHub Releases</a>.
+      <a href="https://github.com/pihme/helferlein/blob/main/LICENSE">PolyForm Noncommercial 1.0.0</a>; three.js is bundled under MIT (<a href="dist/THIRD_PARTY_NOTICES.md">notices</a>).
+    </footer>
+  </main>
+  <script src="dist/helferlein.min.js"></script>
+  <script>
+    const stage = document.getElementById("stage");
+    const figure = Helferlein.mount(stage);
+    figure.summon();
+    let busy = false;
+    async function turn() {
+      if (busy) return;
+      busy = true;
+      figure.working();
+      await new Promise(resolve => setTimeout(resolve, 900));
+      await figure.applied();
+      busy = false;
+    }
+    stage.addEventListener("click", turn);
+    stage.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") turn(); });
+  </script>
+</body>
+</html>
