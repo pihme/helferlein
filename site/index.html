@@ -17,7 +17,7 @@
         linear-gradient(165deg, #f7f2e8 0%, #f4efe6 46%, #e3eef6 100%);
       min-height: 100vh;
     }
-    main { max-width: 980px; margin: 0 auto; padding: 48px 24px 64px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 32px; align-items: center; }
+    main { max-width: 980px; margin: 0 auto; padding: 48px 24px 64px; display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 32px; align-items: center; }
     h1 { font-size: 44px; line-height: 1.1; margin: 0 0 12px; }
     p { margin: 0 0 14px; }
     .lede { font-size: 20px; color: var(--soft); }
@@ -29,7 +29,7 @@
     pre { background: #1c2430; color: #f4efe6; padding: 14px 16px; border-radius: 12px; overflow-x: auto; font-size: 14px; }
     footer { grid-column: 1 / -1; color: var(--soft); font-size: 14px; }
     footer a { color: inherit; }
-    @media (max-width: 760px) { main { grid-template-columns: 1fr; } #stage { height: 300px; order: -1; } }
+    @media (max-width: 760px) { main { grid-template-columns: minmax(0, 1fr); } #stage { height: 300px; order: -1; } }
   </style>
 </head>
 <body>

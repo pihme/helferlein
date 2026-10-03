@@ -106,7 +106,7 @@ Without a bundler, an import map points `three` at a three.js module build (from
 </script>
 ```
 
-`mount(element, options)` draws into `element` (a container, or a `<canvas>`) and sizes the canvas to it, so give the element a size. It sets the CSS variable `--mesh-pad` on the element: the fraction of the view below the figure's lowest point, for placing it against an edge.
+`mount(element, options)` draws into `element` (a container, or a `<canvas>`), so give the element a size. In a container it adds a canvas that fills it at any pixel ratio, without CSS from the page. A `<canvas>` passed in keeps its CSS size, or, without one, the size of its `width` and `height` attributes. It sets the CSS variable `--mesh-pad` on the element: the fraction of the view below the figure's lowest point, for placing it against an edge.
 
 | Option | Default | Effect |
 | --- | --- | --- |

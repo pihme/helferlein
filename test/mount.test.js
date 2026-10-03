@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import * as THREE from "three";
-import { motionPreference, mountWith } from "../src/figure.js";
+import { fitCanvas, motionPreference, mountWith } from "../src/figure.js";
 import { screenLook } from "../src/motion.js";
 import { blankMemory, defaultLook } from "../src/roll.js";
 
@@ -199,4 +199,30 @@ test("the WebGL figure, the fallback and types/index.d.ts offer the same members
   assert.deepEqual(Object.keys(still).sort(), declared);
   gl.dispose();
   still.dispose();
+});
+
+test("the canvas shows at its container's size, whatever the pixel ratio", () => {
+  const { env, step } = harness();
+  const host = fakeNode("DIV");
+  const figure = mountWith(host, FAKE_THREE, { reducedMotion: true }, env);
+  const canvas = host.children[0];
+  assert.equal(canvas.tagName, "CANVAS");
+  assert.equal(canvas.style.display, "block");
+  assert.equal(canvas.style.width, "100%");
+  assert.equal(canvas.style.height, "100%");
+  step();
+  figure.dispose();
+  assert.equal(host.children.length, 0);
+
+  // A host canvas without a CSS size keeps its mounted size instead of growing with the buffer.
+  const bare = { ...fakeNode("CANVAS"), width: 300, height: 150, clientWidth: 300, clientHeight: 150 };
+  const restore = fitCanvas(bare, false);
+  assert.equal(bare.style.width, "300px");
+  assert.equal(bare.style.height, "150px");
+  restore();
+  assert.equal(bare.style.width, "");
+  // A host canvas sized by CSS is left alone.
+  const styled = { ...fakeNode("CANVAS"), width: 640, height: 720, clientWidth: 320, clientHeight: 360 };
+  fitCanvas(styled, false);
+  assert.equal(styled.style.width, undefined);
 });

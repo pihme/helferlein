@@ -195,6 +195,31 @@ function mountFallback(element, motion, doc, error) {
   };
 }
 
+// The renderer sizes only the drawing buffer (width x height x pixel ratio). Without a CSS size a
+// canvas shows at its buffer size, so at a pixel ratio of 2 it would show twice as large as its
+// container, and each frame would measure it larger still. The canvas mount adds fills the
+// container; a host's own canvas without a CSS size keeps the size it had when mounted.
+// Returns a function that puts the host canvas's inline size back.
+function fitCanvas(canvas, ownCanvas) {
+  const style = canvas.style;
+  if (!style) return () => {};
+  if (ownCanvas) {
+    style.display = "block";
+    style.width = "100%";
+    style.height = "100%";
+    return () => {};
+  }
+  const unsized = !style.width && !style.height && canvas.clientWidth > 0 &&
+    canvas.clientWidth === canvas.width && canvas.clientHeight === canvas.height;
+  if (!unsized) return () => {};
+  style.width = `${canvas.clientWidth}px`;
+  style.height = `${canvas.clientHeight}px`;
+  return () => {
+    style.width = "";
+    style.height = "";
+  };
+}
+
 function mountWith(element, THREE, options = {}, env = {}) {
   if (!element) throw new TypeError("Helferlein: mount needs an element");
   if (!THREE || !THREE.WebGLRenderer) throw new Error("Helferlein: Three.js did not load");
@@ -206,10 +231,13 @@ function mountWith(element, THREE, options = {}, env = {}) {
   const ownCanvas = element.tagName !== "CANVAS";
   const canvas = ownCanvas ? doc.createElement("canvas") : element;
   if (ownCanvas) element.appendChild(canvas);
+  // Before the renderer: setting the pixel ratio resizes the buffer.
+  const restoreSize = fitCanvas(canvas, ownCanvas);
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   } catch (error) {
+    restoreSize();
     if (ownCanvas && canvas.parentNode === element) element.removeChild(canvas);
     return mountFallback(ownCanvas ? element : (element.parentNode || element), motion, doc, error);
   }
@@ -473,9 +501,10 @@ function mountWith(element, THREE, options = {}, env = {}) {
       motion.stop();
       clearGroup(inner);
       renderer.dispose();
+      restoreSize();
       if (ownCanvas && canvas.parentNode === element) element.removeChild(canvas);
     }
   };
 }
 
-export { bodyCenterY, motionPreference, mountFallback, mountWith, screenPad };
+export { bodyCenterY, fitCanvas, motionPreference, mountFallback, mountWith, screenPad };
