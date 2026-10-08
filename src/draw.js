@@ -1255,8 +1255,7 @@ function createDraw(THREE, env = {}) {
             point.scale.z = 0.32;
             star.add(point);
           }
-          // The star faces along the stick, so it reads when the wand points forward.
-          star.rotation.x = -Math.PI / 2;
+          // The star lies in the stick's plane.
           g.add(star);
         } else if (name === "Scissors") {
           add(sphere(0.015, dark, 10), 0.16);
