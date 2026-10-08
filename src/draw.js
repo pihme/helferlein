@@ -1122,18 +1122,11 @@ function createDraw(THREE, env = {}) {
           const shaft = add(solid(new THREE.CylinderGeometry(0.02, 0.022, 0.32, 12), m), 0.16);
           shaft.scale.z = 0.38;
           const head = new THREE.Group();
-          head.position.y = 0.36;
-          const back = solid(new THREE.TorusGeometry(0.04, 0.014, 8, 16, Math.PI), m);
-          back.rotation.z = Math.PI;
-          head.add(back);
-          [-1, 1].forEach(side => {
-            const prong = solid(new THREE.CylinderGeometry(0.014, 0.014, 0.09, 10), m);
-            prong.position.set(side * 0.04, 0.045, 0);
-            head.add(prong);
-            const tip = sphere(0.014, m, 8);
-            tip.position.set(side * 0.04, 0.09, 0);
-            head.add(tip);
-          });
+          head.position.y = 0.355;
+          const arc = Math.PI * 1.65;
+          const jaw = solid(new THREE.TorusGeometry(0.046, 0.014, 8, 28, arc), m);
+          jaw.rotation.z = -Math.PI / 2 - arc / 2;
+          head.add(jaw);
           head.scale.z = 0.45;
           // Fifteen degrees, the offset on a combination wrench. A quarter turn is too much.
           head.rotation.z = -Math.PI / 12;
