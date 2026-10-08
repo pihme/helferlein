@@ -988,8 +988,8 @@ function createDraw(THREE, env = {}) {
         } else if (name === "Watering can") {
           const can = new THREE.Group();
           const put = (mesh, y, x, z) => { mesh.position.set(x || 0, y || 0, z || 0); can.add(mesh); return mesh; };
-          // +Y is the pour. The aimer lays +Y on world down, so low Y is the handle above the can.
-          const body = put(solid(new THREE.CylinderGeometry(0.09, 0.1, 0.2, 24), m), 0.34);
+          // +Y is the pour. The handle is a loop on the side opposite the spout.
+          put(solid(new THREE.CylinderGeometry(0.09, 0.1, 0.2, 24), m), 0.34);
           put(solid(new THREE.TorusGeometry(0.09, 0.012, 8, 24), dark), 0.24).rotation.x = Math.PI / 2;
           const spoutDir = new THREE.Vector3(0.28, 0.96, 0).normalize();
           const spout = new THREE.Group();
@@ -1002,21 +1002,21 @@ function createDraw(THREE, env = {}) {
           rose.position.y = 0.21;
           spout.add(rose);
           can.add(spout);
-          const handle = put(solid(new THREE.TorusGeometry(0.08, 0.014, 8, 22, Math.PI), m), 0.16);
-          handle.rotation.z = Math.PI;
+          const handle = put(solid(new THREE.TorusGeometry(0.065, 0.014, 8, 18, Math.PI), m), 0.34, -0.09, 0);
+          handle.rotation.z = Math.PI / 2;
           const canScale = 1.35;
           can.scale.setScalar(canScale);
           g.add(can);
-          const gripY = 0.08 * canScale;
+          const grip = new THREE.Vector3(-0.155, 0.34, 0).multiplyScalar(canScale);
           const from = new THREE.Vector3(0.07, 0.36, 0).multiplyScalar(canScale);
           const to = from.clone().addScaledVector(spoutDir, 0.22 * canScale);
           g.userData.localAim = [spoutDir.x, spoutDir.y, spoutDir.z];
           g.userData.localTwist = [1, 0, 0];
-          g.userData.grip = [0, gripY, 0];
+          g.userData.grip = [grip.x, grip.y, grip.z];
           g.userData.aimFrom = [from.x, from.y, from.z];
           g.userData.aimTo = [to.x, to.y, to.z];
           g.userData.bodyAt = [0, 0.34 * canScale, 0];
-          g.userData.crownAt = [0, gripY, 0];
+          g.userData.crownAt = [grip.x, grip.y, grip.z];
         } else if (name === "Telescope") {
           add(solid(new THREE.CylinderGeometry(0.016, 0.02, 0.07, 12), dark), 0.04);
           add(solid(new THREE.CylinderGeometry(0.03, 0.03, 0.15, 14), m), 0.15);
