@@ -825,29 +825,62 @@ function createDraw(THREE, env = {}) {
             if (sockets.classic) beam.position.set(side * 0.12 * s, crown + 0.01 * s, 0);
             else beam.position.set(side * sockets.antlerR * 0.92, sockets.antlerY, 0);
             g.add(beam);
-            // The beam leaves the skull and bends outward. The top forks.
+            // One mesh per curve, so the segments do not crease. The tips stay apart.
             const at = (x, y, z) => [side * x * s, y * s, z * s];
-            const link = (from, to, r0, r1) => {
-              const dir = new THREE.Vector3(to[0] - from[0], to[1] - from[1], to[2] - from[2]);
-              const len = dir.length();
-              const mesh = solid(new THREE.CylinderGeometry(r1, r0, len, 6), m);
-              mesh.position.set((from[0] + to[0]) * 0.5, (from[1] + to[1]) * 0.5, (from[2] + to[2]) * 0.5);
-              mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.multiplyScalar(1 / len));
-              beam.add(mesh);
+            const horn = (points, r0, r1) => {
+              const rings = 8;
+              const positions = [];
+              const tangents = points.map((_, i) => {
+                const prev = points[Math.max(0, i - 1)];
+                const next = points[Math.min(points.length - 1, i + 1)];
+                return new THREE.Vector3(next[0] - prev[0], next[1] - prev[1], next[2] - prev[2]).normalize();
+              });
+              let sideV = new THREE.Vector3(0, 0, 1);
+              if (Math.abs(tangents[0].dot(sideV)) > 0.9) sideV.set(1, 0, 0);
+              for (let i = 0; i < points.length; i++) {
+                const dir = tangents[i];
+                sideV.addScaledVector(dir, -sideV.dot(dir));
+                if (sideV.lengthSq() < 1e-8) sideV.set(1, 0, 0).addScaledVector(dir, -dir.x);
+                sideV.normalize();
+                const bin = new THREE.Vector3().crossVectors(dir, sideV).normalize();
+                const r = r0 + (r1 - r0) * (i / (points.length - 1));
+                const p = points[i];
+                for (let k = 0; k < rings; k++) {
+                  const a = (k / rings) * Math.PI * 2;
+                  const c = Math.cos(a);
+                  const sn = Math.sin(a);
+                  positions.push(
+                    p[0] + (c * sideV.x + sn * bin.x) * r,
+                    p[1] + (c * sideV.y + sn * bin.y) * r,
+                    p[2] + (c * sideV.z + sn * bin.z) * r
+                  );
+                }
+              }
+              const index = [];
+              for (let i = 0; i < points.length - 1; i++) {
+                for (let k = 0; k < rings; k++) {
+                  const a = i * rings + k;
+                  const b = i * rings + (k + 1) % rings;
+                  const c = (i + 1) * rings + k;
+                  const d = (i + 1) * rings + (k + 1) % rings;
+                  index.push(a, c, b, b, c, d);
+                }
+              }
+              const geo = new THREE.BufferGeometry();
+              geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+              geo.setIndex(index);
+              geo.computeVertexNormals();
+              beam.add(solid(geo, m));
             };
             const A = at(0, 0, 0);
-            const B = at(0.045, 0.07, 0);
-            const C = at(0.08, 0.15, 0);
-            const D = at(0.09, 0.22, 0);
-            link(A, B, 0.040 * s, 0.032 * s);
-            link(B, C, 0.032 * s, 0.024 * s);
-            link(C, D, 0.024 * s, 0.018 * s);
-            link(D, at(0.05, 0.32, 0), 0.014 * s, 0.008 * s);
-            link(D, at(0.16, 0.30, 0), 0.014 * s, 0.008 * s);
-            link(C, at(0.13, 0.20, 0), 0.016 * s, 0.012 * s);
-            link(at(0.13, 0.20, 0), at(0.15, 0.28, 0), 0.012 * s, 0.008 * s);
-            link(B, at(0.12, 0.05, 0.02), 0.016 * s, 0.012 * s);
-            link(at(0.12, 0.05, 0.02), at(0.18, 0.09, 0.03), 0.012 * s, 0.008 * s);
+            const B = at(0.05, 0.08, 0);
+            const C = at(0.10, 0.16, 0);
+            const D = at(0.13, 0.24, 0);
+            horn([A, B, C, D], 0.040 * s, 0.018 * s);
+            horn([D, at(0.16, 0.30, 0), at(0.18, 0.38, 0)], 0.014 * s, 0.007 * s);
+            horn([D, at(0.20, 0.28, 0), at(0.26, 0.32, 0)], 0.014 * s, 0.007 * s);
+            horn([C, at(0.16, 0.22, 0), at(0.18, 0.30, 0)], 0.015 * s, 0.007 * s);
+            horn([B, at(0.14, 0.07, 0.02), at(0.20, 0.11, 0.03)], 0.015 * s, 0.007 * s);
           });
         } else if (name === "Propeller") {
           const hub = new THREE.Group();
