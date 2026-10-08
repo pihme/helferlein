@@ -148,7 +148,8 @@ test("smoother bodies keep the eight silhouettes", () => {
   const kinds = rocket.children.filter(child => child.isMesh).map(mesh => mesh.geometry.type);
   assert.ok(kinds.includes("CylinderGeometry"));
   assert.ok(kinds.includes("ConeGeometry"));
-  assert.equal(kinds.filter(kind => kind === "BoxGeometry").length, 3);
+  assert.equal(kinds.filter(kind => kind === "BoxGeometry").length, 0);
+  assert.equal(kinds.filter(kind => kind === "BufferGeometry").length, 3);
   const nose = rocket.children.find(child => child.geometry && child.geometry.type === "ConeGeometry");
   assert.equal(nose.geometry.parameters.openEnded, true);
 });
