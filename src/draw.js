@@ -859,8 +859,8 @@ function createDraw(THREE, env = {}) {
           add(solid(new THREE.CylinderGeometry(0.022, 0.022, 0.05, 12), dark), 0.045);
           add(solid(new THREE.CylinderGeometry(0.018, 0.018, 0.04, 12), lite), 0.012);
           add(solid(new THREE.CylinderGeometry(0.018, 0.018, 0.32, 6), m), 0.21);
-          add(solid(new THREE.ConeGeometry(0.018, 0.1, 8), lite), 0.41);
-          add(solid(new THREE.ConeGeometry(0.006, 0.036, 8), dark), 0.47);
+          add(solid(new THREE.CylinderGeometry(0.006, 0.018, 0.08, 8), lite), 0.41);
+          add(solid(new THREE.ConeGeometry(0.006, 0.04, 8), dark), 0.47);
         } else if (name === "Magnifying glass") {
           // The lens sits in the same plane as the handle, so the rim meets the ferrule.
           add(solid(new THREE.CylinderGeometry(0.016, 0.02, 0.3, 12), m), 0.15);
