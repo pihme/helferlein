@@ -1119,17 +1119,22 @@ function createDraw(THREE, env = {}) {
         // Built flat in local XY. +Y runs toward the working end.
         // The hold aims that end in figure space: +Z is forward, +Y is up.
         if (name === "Wrench") {
-          add(solid(new THREE.CylinderGeometry(0.018, 0.022, 0.32, 12), m), 0.16);
+          const shaft = add(solid(new THREE.CylinderGeometry(0.02, 0.022, 0.32, 12), m), 0.16);
+          shaft.scale.z = 0.38;
           const head = new THREE.Group();
-          head.position.y = 0.34;
-          head.add(solid(new THREE.BoxGeometry(0.1, 0.045, 0.032), m));
-          const prong = (x) => {
-            const mesh = solid(new THREE.BoxGeometry(0.022, 0.11, 0.032), m);
-            mesh.position.set(x, 0.07, 0);
-            head.add(mesh);
-          };
-          prong(-0.036);
-          prong(0.036);
+          head.position.y = 0.36;
+          const back = solid(new THREE.TorusGeometry(0.04, 0.014, 8, 16, Math.PI), m);
+          back.rotation.z = Math.PI;
+          head.add(back);
+          [-1, 1].forEach(side => {
+            const prong = solid(new THREE.CylinderGeometry(0.014, 0.014, 0.09, 10), m);
+            prong.position.set(side * 0.04, 0.045, 0);
+            head.add(prong);
+            const tip = sphere(0.014, m, 8);
+            tip.position.set(side * 0.04, 0.09, 0);
+            head.add(tip);
+          });
+          head.scale.z = 0.45;
           // Fifteen degrees, the offset on a combination wrench. A quarter turn is too much.
           head.rotation.z = -Math.PI / 12;
           g.add(head);
