@@ -773,19 +773,20 @@ function createDraw(THREE, env = {}) {
           head.position.y = 0.035 * s;
           head.rotation.x = 0.62;
           antenna.add(head);
+          // A little shallower than the deep bowl. The +Z rim is the low side after the tilt.
           head.add(lathe([
-            [0.02 * s, 0.01 * s], [0.08 * s, 0.03 * s], [0.15 * s, 0.075 * s], [0.21 * s, 0.145 * s],
-            [0.225 * s, 0.175 * s], [0.20 * s, 0.15 * s], [0.14 * s, 0.085 * s], [0.07 * s, 0.042 * s], [0.02 * s, 0.022 * s]
+            [0.02 * s, 0.008 * s], [0.08 * s, 0.024 * s], [0.15 * s, 0.060 * s], [0.21 * s, 0.116 * s],
+            [0.225 * s, 0.140 * s], [0.20 * s, 0.120 * s], [0.14 * s, 0.068 * s], [0.07 * s, 0.034 * s], [0.02 * s, 0.018 * s]
           ], metal));
           const arm = new THREE.Group();
-          arm.position.set(0, 0.11 * s, 0.15 * s);
-          arm.rotation.x = -0.95;
+          arm.position.set(0, 0.105 * s, 0.20 * s);
+          arm.rotation.x = -0.15;
           head.add(arm);
-          const rod = solid(new THREE.CylinderGeometry(0.007 * s, 0.007 * s, 0.20 * s, 6), metal);
-          rod.position.y = 0.09 * s;
+          const rod = solid(new THREE.CylinderGeometry(0.007 * s, 0.007 * s, 0.06 * s, 6), metal);
+          rod.position.y = 0.025 * s;
           arm.add(rod);
           const lnb = solid(new THREE.CylinderGeometry(0.026 * s, 0.016 * s, 0.05 * s, 8), metal);
-          lnb.position.y = 0.20 * s;
+          lnb.position.y = 0.055 * s;
           arm.add(lnb);
         } else if (name === "Halo") {
           const halo = put(solid(new THREE.TorusGeometry(0.34 * s, 0.034 * s, 10, 32), hot), 0, crown + 0.16 * s, 0);
