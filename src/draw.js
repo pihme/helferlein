@@ -388,10 +388,12 @@ function createDraw(THREE, env = {}) {
           put(solid(new THREE.CylinderGeometry(0.16 * s, 0.18 * s, 0.045 * s, 18), band), 0, top + 0.03 * s, 0);
           put(sphere(0.026 * s, band, 8), 0, top + 0.035 * s, 0.17 * s);
         } else if (name === "Chef's hat") {
-          put(solid(new THREE.CylinderGeometry(0.20 * s, 0.21 * s, 0.07 * s, 20), band), 0, top - 0.01, 0);
-          put(solid(new THREE.CylinderGeometry(0.24 * s, 0.20 * s, 0.18 * s, 20), m), 0, top + 0.09 * s, 0);
-          const cap = put(sphere(0.24 * s, m, 18), 0, top + 0.16 * s, 0);
-          cap.scale.y = 0.55;
+          const bandH = 0.11 * s;
+          put(solid(new THREE.CylinderGeometry(0.20 * s, 0.205 * s, bandH, 28), band), 0, top + bandH * 0.15, 0);
+          put(lathe([
+            [0.195 * s, 0], [0.23 * s, 0.03 * s], [0.26 * s, 0.09 * s], [0.265 * s, 0.16 * s],
+            [0.23 * s, 0.23 * s], [0.10 * s, 0.28 * s], [0.01 * s, 0.30 * s]
+          ], m), 0, top + bandH * 0.65, 0);
         } else if (name === "Crown") {
           const metal = paint(look, "accessories", { metalness: 0.72, roughness: 0.28 });
           const seat = top - 0.20 * s;
