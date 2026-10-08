@@ -532,13 +532,48 @@ function createDraw(THREE, env = {}) {
             rig.add(inner);
           });
         } else if (name === "Cat ears") {
+          // Flat triangle on +Z, half-cone bulging toward -Z.
+          const earGeo = (radius, height) => {
+            const positions = [];
+            const apex = new THREE.Vector3(0, height / 2, 0);
+            const seg = 10;
+            const arc = [];
+            for (let i = 0; i <= seg; i++) {
+              const t = (i / seg) * Math.PI;
+              arc.push(new THREE.Vector3(Math.cos(t) * radius, -height / 2, -Math.sin(t) * radius));
+            }
+            const push = (a, b, c) => positions.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
+            push(apex, arc[0], arc[seg]);
+            for (let i = 0; i < seg; i++) push(apex, arc[i], arc[i + 1]);
+            const base = new THREE.Vector3(0, -height / 2, 0);
+            for (let i = 0; i < seg; i++) push(base, arc[i + 1], arc[i]);
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
+            geo.computeVertexNormals();
+            return geo;
+          };
+          const innerGeo = (radius, height) => {
+            const apex = new THREE.Vector3(0, height / 2, 0);
+            const right = new THREE.Vector3(radius, -height / 2, 0);
+            const left = new THREE.Vector3(-radius, -height / 2, 0);
+            const positions = [
+              apex.x, apex.y, apex.z, right.x, right.y, right.z, left.x, left.y, left.z,
+              apex.x, apex.y, apex.z, left.x, left.y, left.z, right.x, right.y, right.z
+            ];
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
+            geo.computeVertexNormals();
+            return geo;
+          };
+          const fur = m.clone();
+          fur.side = THREE.DoubleSide;
           [-1, 1].forEach(side => {
             const lean = side * -0.2;
             const H = 0.15 * s;
             const rig = new THREE.Group();
             rig.name = "ear";
             rig.position.set(side * 0.16 * s + Math.sin(lean) * H, top + 0.02 * s - Math.cos(lean) * H, 0);
-            rig.rotation.y = 0.55;
+            rig.rotation.y = side * 0.55;
             rig.rotation.z = rig.userData.base = lean;
             rig.userData.amp = side * -0.45;
             rig.userData.side = side;
@@ -547,11 +582,11 @@ function createDraw(THREE, env = {}) {
               rig.position.set(hinge[0], hinge[1], hinge[2]);
             }
             g.add(rig);
-            const ear = solid(new THREE.ConeGeometry(0.10 * s, 0.30 * s, 4), m);
+            const ear = solid(earGeo(0.10 * s, 0.30 * s), fur);
             ear.position.y = H;
             rig.add(ear);
-            const inner = solid(new THREE.ConeGeometry(0.05 * s, 0.16 * s, 4), faceMat);
-            inner.position.set(0, 0.015 * s, 0.04 * s);
+            const inner = solid(innerGeo(0.045 * s, 0.14 * s), faceMat);
+            inner.position.set(0, 0.02 * s, 0.008 * s);
             ear.add(inner);
           });
         } else if (name === "Dog ears") {
