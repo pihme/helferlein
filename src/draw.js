@@ -572,9 +572,7 @@ function createDraw(THREE, env = {}) {
           hub.position.set(0, sockets.classic ? crown + 0.04 * s : sockets.meshTop - hubH * 0.15, 0);
           g.add(hub);
           hub.add(solid(new THREE.CylinderGeometry(0.05 * s, 0.05 * s, 0.04 * s, 14), band));
-          const dome = solid(new THREE.SphereGeometry(0.048 * s, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), band);
-          dome.position.y = 0.02 * s;
-          hub.add(dome);
+          hub.add(solid(new THREE.SphereGeometry(0.085 * s, 16, 12), band));
           for (let i = 0; i < 3; i++) {
             const arm = new THREE.Group();
             arm.rotation.y = i * (Math.PI * 2 / 3);
