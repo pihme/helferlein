@@ -284,7 +284,7 @@ function createDraw(THREE, env = {}) {
           };
           const wire = hot.clone();
           wire.side = THREE.DoubleSide;
-          // Horizontal coil, left to right, bowed upward so the front view can see it above the face.
+          // Horizontal coil, left to right, bowed upward, sitting behind the face.
           const archCoil = () => {
             const steps = 9 * 16;
             const sides = 6;
@@ -299,8 +299,8 @@ function createDraw(THREE, env = {}) {
               const t = i / steps;
               const a = t * turns * Math.PI * 2;
               const x = -span / 2 + span * t;
-              const arch = Math.sin(t * Math.PI) * 0.05;
-              pts.push(new THREE.Vector3(x, 1.84 + arch + Math.sin(a) * coilR, Math.cos(a) * coilR));
+              const arch = Math.sin(t * Math.PI) * 0.03;
+              pts.push(new THREE.Vector3(x, 1.62 + arch + Math.sin(a) * coilR, Math.cos(a) * coilR));
             }
             for (let i = 0; i <= steps; i++) {
               const prev = pts[Math.max(0, i - 1)];
