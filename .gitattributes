@@ -2,3 +2,4 @@ docs/**/*.png filter=lfs diff=lfs merge=lfs -text
 design/prototype/**/*.png filter=lfs diff=lfs merge=lfs -text
 design/progress/**/*.png filter=lfs diff=lfs merge=lfs -text
 design/final/**/*.png filter=lfs diff=lfs merge=lfs -text
+design/locked/**/*.png filter=lfs diff=lfs merge=lfs -text

@@ -177,6 +177,11 @@ try {
     console.log(help);
     process.exit(0);
   }
+  const locked = path.join(root, "design", "locked");
+  const destRoot = path.resolve(options.out || path.join(root, "design", options.into));
+  if (destRoot === locked || destRoot.startsWith(locked + path.sep)) {
+    throw new Error("design/locked stays as it is");
+  }
   const server = await serveRepo();
   const port = server.address().port;
   const page = `http://127.0.0.1:${port}/design/mugshot.html`;
@@ -185,7 +190,6 @@ try {
     await new Promise(() => {});
   }
   const items = wanted(options.only);
-  const destRoot = options.out || path.join(root, "design", options.into);
   const chrome = await launchChrome();
   const session = await connect(chrome.port);
   try {

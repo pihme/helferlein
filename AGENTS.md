@@ -81,10 +81,14 @@ The tool is `design/mugshot.js`. The writer is `scripts/mugshots.mjs` (`npm run 
 - `npm run mugshots` writes every item to `design/progress/<folder>/<slug>.png`.
 - `npm run mugshots -- --into final` writes the reference set to `design/final`.
 - `npm run mugshots -- --only wrench` writes one item. A catalog name or its prototype slug both match.
-- `npm run mugshots -- --out <dir>` writes those same folders under `<dir>` instead, for a look that stays out of `design/progress` and `design/final`.
+- `npm run mugshots -- --out <dir>` writes those same folders under `<dir>` instead, for a look that stays out of `design/progress`, `design/final`, and `design/locked`.
 - `npm run mugshots -- --serve` prints a local URL for `design/mugshot.html` and leaves the viewer up.
 
-Folders are `bodies`, `clothes`, `tools`, and `extras`, and the slug is the prototype picture's name. PNGs under `design/progress` and `design/final` are Git LFS. Headless Chromium is `/snap/bin/chromium`, or the browser in `CHROME` when it lives elsewhere. The run is done when each requested sheet is a PNG and its four panels are labeled Front, Side, Top, and Context.
+Folders are `bodies`, `clothes`, `tools`, and `extras`, and the slug is the prototype picture's name. PNGs under `design/progress`, `design/final`, and `design/locked` are Git LFS. Headless Chromium is `/snap/bin/chromium`, or the browser in `CHROME` when it lives elsewhere. The run is done when each requested sheet is a PNG and its four panels are labeled Front, Side, Top, and Context.
+
+## Locked designs
+
+`design/locked` is the frozen look, in the same folders and slugs as the mugshots. A sheet there stays byte for byte, and the item it shows stays as that sheet. Every garment is locked. Every body is locked except the lightbulb and the rocket. Among the extras, the bunny ears, the halo, and the small wings are locked. The other extras and the tools stay open. The mugshot writer refuses to write into `design/locked`.
 
 ## Do not invent
 
