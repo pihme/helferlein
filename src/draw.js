@@ -822,25 +822,32 @@ function createDraw(THREE, env = {}) {
         } else if (name === "Antlers") {
           [-1, 1].forEach(side => {
             const beam = new THREE.Group();
-            if (sockets.classic) beam.position.set(side * 0.14 * s, crown - 0.02 * s, 0);
+            if (sockets.classic) beam.position.set(side * 0.12 * s, crown + 0.01 * s, 0);
             else beam.position.set(side * sockets.antlerR * 0.92, sockets.antlerY, 0);
-            beam.rotation.z = side * -0.72;
             g.add(beam);
-            beam.add(solid(new THREE.CylinderGeometry(0.028 * s, 0.046 * s, 0.36 * s, 7), m));
-            const branch = (along, len, rx, rz, radius) => {
-              const joint = new THREE.Group();
-              joint.position.y = along;
-              joint.rotation.x = rx;
-              joint.rotation.z = rz;
-              const part = solid(new THREE.CylinderGeometry(radius * 0.5, radius, len, 6), m);
-              part.position.y = len * 0.5;
-              joint.add(part);
-              beam.add(joint);
+            // The beam leaves the skull and bends outward. The top forks.
+            const at = (x, y, z) => [side * x * s, y * s, z * s];
+            const link = (from, to, r0, r1) => {
+              const dir = new THREE.Vector3(to[0] - from[0], to[1] - from[1], to[2] - from[2]);
+              const len = dir.length();
+              const mesh = solid(new THREE.CylinderGeometry(r1, r0, len, 6), m);
+              mesh.position.set((from[0] + to[0]) * 0.5, (from[1] + to[1]) * 0.5, (from[2] + to[2]) * 0.5);
+              mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.multiplyScalar(1 / len));
+              beam.add(mesh);
             };
-            branch(-0.10 * s, 0.20 * s, 1.2, side * 0.25, 0.028 * s);
-            branch(-0.01 * s, 0.18 * s, 0, side * -0.62, 0.024 * s);
-            branch(0.03 * s, 0.18 * s, -1.2, side * 0.2, 0.024 * s);
-            branch(0.12 * s, 0.16 * s, 0.15, side * 0.38, 0.022 * s);
+            const A = at(0, 0, 0);
+            const B = at(0.045, 0.07, 0);
+            const C = at(0.08, 0.15, 0);
+            const D = at(0.09, 0.22, 0);
+            link(A, B, 0.040 * s, 0.032 * s);
+            link(B, C, 0.032 * s, 0.024 * s);
+            link(C, D, 0.024 * s, 0.018 * s);
+            link(D, at(0.05, 0.32, 0), 0.014 * s, 0.008 * s);
+            link(D, at(0.16, 0.30, 0), 0.014 * s, 0.008 * s);
+            link(C, at(0.13, 0.20, 0), 0.016 * s, 0.012 * s);
+            link(at(0.13, 0.20, 0), at(0.15, 0.28, 0), 0.012 * s, 0.008 * s);
+            link(B, at(0.12, 0.05, 0.02), 0.016 * s, 0.012 * s);
+            link(at(0.12, 0.05, 0.02), at(0.18, 0.09, 0.03), 0.012 * s, 0.008 * s);
           });
         } else if (name === "Propeller") {
           const hub = new THREE.Group();
