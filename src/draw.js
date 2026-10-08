@@ -1251,8 +1251,33 @@ function createDraw(THREE, env = {}) {
           add(solid(head, headMat), 0);
         } else if (name === "Saw") {
           add(solid(new THREE.TorusGeometry(0.1, 0.02, 8, 20), m), 0.02);
-          add(solid(new THREE.BoxGeometry(0.075, 0.58, 0.01), m), 0.4, -0.014);
-          add(solid(new THREE.BoxGeometry(0.016, 0.58, 0.014), dark), 0.4, -0.05);
+          // The heel meets the top of the ring. The tooth edge stays straight and the back tapers toward the toe.
+          const plank = (y0, x0a, x0b, y1, x1a, x1b, thick, mat) => {
+            const front = [
+              new THREE.Vector3(x0a, y0, thick), new THREE.Vector3(x0b, y0, thick),
+              new THREE.Vector3(x1b, y1, thick), new THREE.Vector3(x1a, y1, thick)
+            ];
+            const rear = front.map(p => new THREE.Vector3(p.x, p.y, -thick));
+            const positions = [];
+            const push = (p, q, r) => positions.push(p.x, p.y, p.z, q.x, q.y, q.z, r.x, r.y, r.z);
+            const quad = (a, b, c, d) => { push(a, b, c); push(a, c, d); };
+            quad(front[0], front[1], front[2], front[3]);
+            quad(rear[0], rear[3], rear[2], rear[1]);
+            for (let i = 0; i < 4; i++) {
+              const j = (i + 1) % 4;
+              quad(front[i], rear[i], rear[j], front[j]);
+            }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
+            geo.computeVertexNormals();
+            g.add(solid(geo, mat));
+          };
+          const plate = m.clone();
+          plate.side = THREE.DoubleSide;
+          const spine = dark.clone();
+          spine.side = THREE.DoubleSide;
+          plank(0.13, -0.045, 0.03, 0.68, -0.02, 0.03, 0.005, plate);
+          plank(0.13, -0.05, -0.034, 0.68, -0.028, -0.014, 0.007, spine);
           for (let i = 0; i < 16; i++) {
             const tooth = add(solid(new THREE.ConeGeometry(0.017, 0.032, 3), dark), 0.16 + i * 0.034, 0.032);
             tooth.rotation.z = -Math.PI / 2;
