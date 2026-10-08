@@ -1051,35 +1051,39 @@ function createDraw(THREE, env = {}) {
         } else if (name === "Watering can") {
           const can = new THREE.Group();
           const put = (mesh, y, x, z) => { mesh.position.set(x || 0, y || 0, z || 0); can.add(mesh); return mesh; };
-          // +Y is the pour. The aimer lays +Y on world down, so low Y is the handle above the can.
-          const body = put(solid(new THREE.CylinderGeometry(0.09, 0.1, 0.2, 24), m), 0.34);
-          put(solid(new THREE.TorusGeometry(0.09, 0.012, 8, 24), dark), 0.24).rotation.x = Math.PI / 2;
-          const spoutDir = new THREE.Vector3(0.28, 0.96, 0).normalize();
+          // The opening is the +Y end. The spout rises out of the side. The base is what points down when held.
+          const wall = m.clone();
+          wall.side = THREE.DoubleSide;
+          put(solid(new THREE.CylinderGeometry(0.09, 0.1, 0.2, 24, 1, true), wall), 0.34);
+          put(solid(new THREE.CylinderGeometry(0.1, 0.1, 0.012, 24), m), 0.246);
+          const lip = put(solid(new THREE.TorusGeometry(0.09, 0.012, 8, 24), dark), 0.44);
+          lip.rotation.x = Math.PI / 2;
+          const spoutDir = new THREE.Vector3(0.55, 0.42, 0).normalize();
           const spout = new THREE.Group();
-          spout.position.set(0.07, 0.36, 0);
+          spout.position.set(0.08, 0.36, 0);
           spout.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), spoutDir);
-          const tube = solid(new THREE.CylinderGeometry(0.02, 0.028, 0.2, 12), dark);
-          tube.position.y = 0.1;
+          const tube = solid(new THREE.CylinderGeometry(0.014, 0.02, 0.14, 12), dark);
+          tube.position.y = 0.07;
           spout.add(tube);
-          const rose = solid(new THREE.CylinderGeometry(0.04, 0.026, 0.03, 14), lite);
-          rose.position.y = 0.21;
+          const rose = solid(new THREE.CylinderGeometry(0.028, 0.018, 0.021, 14), lite);
+          rose.position.y = 0.15;
           spout.add(rose);
           can.add(spout);
-          const handle = put(solid(new THREE.TorusGeometry(0.08, 0.014, 8, 22, Math.PI), m), 0.16);
-          handle.rotation.z = Math.PI;
+          const handle = put(solid(new THREE.TorusGeometry(0.065, 0.014, 8, 18, Math.PI), m), 0.34, -0.09, 0);
+          handle.rotation.z = Math.PI / 2;
           const canScale = 1.35;
           can.scale.setScalar(canScale);
           g.add(can);
-          const gripY = 0.08 * canScale;
-          const from = new THREE.Vector3(0.07, 0.36, 0).multiplyScalar(canScale);
-          const to = from.clone().addScaledVector(spoutDir, 0.22 * canScale);
-          g.userData.localAim = [spoutDir.x, spoutDir.y, spoutDir.z];
+          const grip = new THREE.Vector3(-0.155, 0.34, 0).multiplyScalar(canScale);
+          const from = new THREE.Vector3(0, 0.34, 0).multiplyScalar(canScale);
+          const to = new THREE.Vector3(0, 0.24, 0).multiplyScalar(canScale);
+          g.userData.localAim = [0, -1, 0];
           g.userData.localTwist = [1, 0, 0];
-          g.userData.grip = [0, gripY, 0];
+          g.userData.grip = [grip.x, grip.y, grip.z];
           g.userData.aimFrom = [from.x, from.y, from.z];
           g.userData.aimTo = [to.x, to.y, to.z];
           g.userData.bodyAt = [0, 0.34 * canScale, 0];
-          g.userData.crownAt = [0, gripY, 0];
+          g.userData.crownAt = [grip.x, grip.y, grip.z];
         } else if (name === "Telescope") {
           add(solid(new THREE.CylinderGeometry(0.016, 0.02, 0.07, 12), dark), 0.04);
           add(solid(new THREE.CylinderGeometry(0.03, 0.03, 0.15, 14), m), 0.15);

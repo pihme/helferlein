@@ -219,7 +219,7 @@ test("each tool sits in the right fist and points the way the hold note says", (
     "Magnifying glass": { aim: [0, 1, 0], reach: "forward" },
     "Brush": { aim: [0, -1, 0], reach: "down" },
     "Clipboard": { aim: [0, 1, 0], face: [0, 0, 1], reach: "forward" },
-    "Watering can": { aim: [0, -1, 0], reach: "forward", crownAbove: 0.08 },
+    "Watering can": { aim: [0, -1, 0], reach: "forward", beside: 0.12 },
     "Telescope": { aim: [0.78, 0.02, 0.62], min: 0.95, reach: "raised" },
     "Hammer": { along: "forearm", face: [0, -1, 0], reach: "forward" },
     "Saw": { along: "forearm", face: [0, -1, 0], reach: "forward" },
@@ -291,6 +291,15 @@ test("each tool sits in the right fist and points the way the hold note says", (
         fig.worldToLocal(body);
         fig.worldToLocal(crown);
         assert.ok(crown.y > body.y + spec.crownAbove, `${shape} can hangs below the fist`);
+      }
+      if (spec.beside) {
+        const body = new THREE.Vector3(...tool.userData.bodyAt);
+        const crown = new THREE.Vector3(...tool.userData.crownAt);
+        tool.localToWorld(body);
+        tool.localToWorld(crown);
+        fig.worldToLocal(body);
+        fig.worldToLocal(crown);
+        assert.ok(crown.distanceTo(body) > spec.beside, `${shape} fist is on the side of the can`);
       }
       const shoulder = fig.userData.sockets.shoulderRight;
       const socket = fig.userData.sockets.handRight;
