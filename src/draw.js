@@ -1198,10 +1198,12 @@ function createDraw(THREE, env = {}) {
           g.userData.bodyAt = [0, 0.34 * canScale, 0];
           g.userData.crownAt = [grip.x, grip.y, grip.z];
         } else if (name === "Telescope") {
-          add(solid(new THREE.CylinderGeometry(0.016, 0.02, 0.07, 12), dark), 0.04);
-          add(solid(new THREE.CylinderGeometry(0.024, 0.024, 0.018, 12), dark), 0.1);
+          const scope = new THREE.Group();
+          const put = (mesh, y, x, z) => { mesh.position.set(x || 0, y || 0, z || 0); scope.add(mesh); return mesh; };
+          put(solid(new THREE.CylinderGeometry(0.016, 0.02, 0.07, 12), dark), 0.04);
+          put(solid(new THREE.CylinderGeometry(0.024, 0.024, 0.018, 12), dark), 0.1);
           // The narrow tube stays straight, then rounds into the wide tube.
-          add(lathe([
+          put(lathe([
             [0.030, 0.075],
             [0.030, 0.205],
             [0.030, 0.213],
@@ -1214,7 +1216,10 @@ function createDraw(THREE, env = {}) {
             [0.043, 0.315],
             [0.046, 0.345]
           ], m), 0);
-          add(solid(new THREE.CylinderGeometry(0.054, 0.054, 0.026, 14), dark), 0.35);
+          put(solid(new THREE.CylinderGeometry(0.054, 0.054, 0.026, 14), dark), 0.35);
+          // 75% larger. The grip marks are these same points times this scale.
+          scope.scale.setScalar(1.75);
+          g.add(scope);
         } else if (name === "Hammer") {
           add(solid(new THREE.CylinderGeometry(0.022, 0.026, 0.5, 12), m), 0.22);
           // Trapezoid with a small round on each corner: straight face at +X, slanted peen at -X.
@@ -1362,7 +1367,7 @@ function createDraw(THREE, env = {}) {
           "Magnifying glass": { grip: [0, 0.08, 0], from: [0, 0.15, 0], to: [0, 0.42, 0] },
           "Brush": { grip: [0, 0.04, 0], from: [0, 0.14, 0], to: [0, 0.46, 0] },
           "Clipboard": { grip: [0, 0.06, 0], from: [0, 0.08, 0], to: [0, 0.40, 0], faceFrom: [0, 0.22, 0], faceTo: [0, 0.22, 1] },
-          "Telescope": { grip: [0, 0.15, 0], from: [0, 0.04, 0], to: [0, 0.35, 0] },
+          "Telescope": { grip: [0, 0.2625, 0], from: [0, 0.07, 0], to: [0, 0.6125, 0] },
           "Hammer": { grip: [0, 0.1, 0], from: [0, 0.16, 0], to: [0, 0.46, 0], faceFrom: [0, 0.46, 0], faceTo: [0.13, 0.46, 0] },
           "Saw": { grip: [0, 0.02, 0], from: [0, 0.02, 0], to: [0, 0.55, 0], faceFrom: [0, 0.40, 0], faceTo: [0.08, 0.40, 0] },
           "Fairy wand": { grip: [0, 0.10, 0], from: [0, 0.10, 0], to: [0, 0.52, 0], faceFrom: [0, 0.52, 0], faceTo: [0, 0.62, 0] },
