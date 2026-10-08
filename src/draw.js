@@ -383,10 +383,23 @@ function createDraw(THREE, env = {}) {
           put(solid(new THREE.CylinderGeometry(0.2 * s, 0.21 * s, 0.035 * s, 24), band), 0, seat + 0.02 * s, 0);
         } else if (name === "Pointed hat") {
           put(solid(new THREE.CylinderGeometry(0.34 * s, 0.34 * s, 0.03, 24), m), 0, top - 0.01, 0);
-          const cone = put(solid(new THREE.ConeGeometry(0.17 * s, 0.46 * s, 18), m), 0.02 * s, top + 0.16 * s, 0);
-          cone.rotation.z = -0.28;
-          put(solid(new THREE.CylinderGeometry(0.16 * s, 0.18 * s, 0.045 * s, 18), band), 0, top + 0.03 * s, 0);
-          put(sphere(0.026 * s, band, 8), 0, top + 0.035 * s, 0.17 * s);
+          const cone = new THREE.Group();
+          cone.position.y = top + 0.005;
+          const soft = lathe([
+            [0.16 * s, 0], [0.145 * s, 0.10 * s], [0.10 * s, 0.24 * s],
+            [0.05 * s, 0.38 * s], [0.015 * s, 0.48 * s]
+          ], m);
+          const pts = soft.geometry.attributes.position;
+          const tipY = 0.48 * s;
+          for (let i = 0; i < pts.count; i++) pts.setX(i, pts.getX(i) + 0.45 * pts.getY(i));
+          pts.needsUpdate = true;
+          soft.geometry.computeVertexNormals();
+          cone.add(soft);
+          const bead = sphere(0.018 * s, band, 8);
+          bead.position.set(0.45 * tipY, tipY, 0);
+          cone.add(bead);
+          g.add(cone);
+          put(solid(new THREE.CylinderGeometry(0.16 * s, 0.18 * s, 0.045 * s, 18), band), 0, top + 0.02 * s, 0);
         } else if (name === "Chef's hat") {
           put(solid(new THREE.CylinderGeometry(0.20 * s, 0.21 * s, 0.07 * s, 20), band), 0, top - 0.01, 0);
           put(solid(new THREE.CylinderGeometry(0.24 * s, 0.20 * s, 0.18 * s, 20), m), 0, top + 0.09 * s, 0);
