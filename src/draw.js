@@ -1322,24 +1322,23 @@ function createDraw(THREE, env = {}) {
             g.add(half);
           });
         } else if (name === "Tongs") {
-          const spring = add(solid(new THREE.TorusGeometry(0.026, 0.009, 6, 12, Math.PI), m), 0.02);
-          spring.rotation.z = Math.PI / 2;
+          const spring = add(solid(new THREE.TorusGeometry(0.026, 0.009, 6, 12, Math.PI), m), 0.05);
+          spring.rotation.z = Math.PI;
           [-1, 1].forEach(side => {
             const pivot = new THREE.Group();
-            pivot.position.set(0, 0.04, 0);
+            pivot.position.set(side * 0.026, 0.05, 0);
             pivot.rotation.z = side * -0.16;
             const arm = solid(new THREE.CylinderGeometry(0.008, 0.01, 0.28, 8), m);
             arm.position.y = 0.14;
             pivot.add(arm);
-            // A flat jaw, turned so the gripping face points at the other arm.
+            // The jaw follows the arm. Its flat faces point at the other jaw.
             const jaw = new THREE.Group();
-            jaw.position.set(side * -0.004, 0.30, 0);
-            jaw.rotation.z = side * 0.14;
-            const pad = solid(new THREE.BoxGeometry(0.034, 0.042, 0.012), dark);
+            jaw.position.set(0, 0.30, 0);
+            const pad = solid(new THREE.BoxGeometry(0.012, 0.05, 0.034), dark);
             jaw.add(pad);
             const cap = sphere(0.017, dark, 8);
-            cap.scale.set(1, 0.5, 0.36);
-            cap.position.y = 0.02;
+            cap.scale.set(0.36, 0.5, 1);
+            cap.position.y = 0.024;
             jaw.add(cap);
             pivot.add(jaw);
             g.add(pivot);
