@@ -367,7 +367,7 @@ function createDraw(THREE, env = {}) {
           put(solid(new THREE.CylinderGeometry(0.125 * s, 0.135 * s, 0.24 * s, 20), m), 0, top + 0.11 * s, 0);
           put(solid(new THREE.CylinderGeometry(0.142 * s, 0.142 * s, 0.045 * s, 20), band), 0, top + 0.035 * s, 0);
         } else if (name === "Beret") {
-          const beret = put(sphere(0.24 * s, m, 24), 0.02 * s, top - 0.02 * s, 0);
+          const beret = put(solid(new THREE.SphereGeometry(0.24 * s, 24, 16, 0, Math.PI * 2, 0, Math.PI * 2 / 3), m), 0.02 * s, top - 0.02 * s, 0);
           beret.scale.set(1.2, 0.42, 1.08);
           beret.rotation.z = -0.28;
           const nub = sphere(0.028 * s, band, 12);
