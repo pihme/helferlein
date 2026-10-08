@@ -1130,6 +1130,8 @@ function createDraw(THREE, env = {}) {
           };
           prong(-0.036);
           prong(0.036);
+          // Fifteen degrees, the offset on a combination wrench. A quarter turn is too much.
+          head.rotation.z = -Math.PI / 12;
           g.add(head);
         } else if (name === "Pencil") {
           add(solid(new THREE.CylinderGeometry(0.022, 0.022, 0.05, 12), dark), 0.045);
