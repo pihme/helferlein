@@ -372,15 +372,15 @@ function createDraw(THREE, env = {}) {
           beret.rotation.set(-0.45, 0.25, -0.7);
           put(sphere(0.032 * s, band, 12), 0.28 * s, top - 0.01 * s, 0.06);
         } else if (name === "Sombrero") {
-          const seat = top - 0.04 * s;
           put(lathe([
-            [0.2 * s, 0], [0.36 * s, -0.008 * s], [0.52 * s, 0.01 * s], [0.62 * s, 0.055 * s],
-            [0.64 * s, 0.065 * s], [0.62 * s, 0.048 * s], [0.5 * s, 0.006 * s], [0.34 * s, -0.01 * s], [0.2 * s, -0.004 * s]
-          ], m), 0, seat, 0);
-          put(solid(new THREE.CylinderGeometry(0.18 * s, 0.2 * s, 0.36 * s, 24), m), 0, seat + 0.18 * s, 0);
-          const dome = put(sphere(0.18 * s, m, 24), 0, seat + 0.34 * s, 0);
-          dome.scale.y = 0.7;
-          put(solid(new THREE.CylinderGeometry(0.2 * s, 0.21 * s, 0.035 * s, 24), band), 0, seat + 0.02 * s, 0);
+            [0.16 * s, 0.03 * s], [0.36 * s, 0.008 * s], [0.50 * s, 0.02 * s], [0.58 * s, 0.06 * s],
+            [0.64 * s, 0.11 * s], [0.62 * s, 0.14 * s], [0.52 * s, 0.05 * s], [0.32 * s, 0],
+            [0.16 * s, 0.012 * s], [0.16 * s, 0.03 * s]
+          ], m), 0, top - 0.10 * s, 0);
+          put(solid(new THREE.CylinderGeometry(0.155 * s, 0.17 * s, 0.18 * s, 20), m), 0, top - 0.01 * s, 0);
+          const dome = put(sphere(0.155 * s, m, 22), 0, top + 0.08 * s, 0);
+          dome.scale.y = 0.72;
+          put(solid(new THREE.CylinderGeometry(0.15 * s, 0.17 * s, 0.045 * s, 20), band), 0, top - 0.04 * s, 0);
         } else if (name === "Pointed hat") {
           put(solid(new THREE.CylinderGeometry(0.34 * s, 0.34 * s, 0.03, 24), m), 0, top - 0.01, 0);
           const cone = put(solid(new THREE.ConeGeometry(0.17 * s, 0.46 * s, 18), m), 0.02 * s, top + 0.16 * s, 0);
