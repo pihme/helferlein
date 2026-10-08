@@ -1331,10 +1331,17 @@ function createDraw(THREE, env = {}) {
             const arm = solid(new THREE.CylinderGeometry(0.008, 0.01, 0.28, 8), m);
             arm.position.y = 0.14;
             pivot.add(arm);
-            const tip = sphere(0.02, dark, 10);
-            tip.position.set(0, 0.3, 0);
-            tip.scale.set(0.62, 1.2, 0.5);
-            pivot.add(tip);
+            // A flat jaw, turned so the gripping face points at the other arm.
+            const jaw = new THREE.Group();
+            jaw.position.set(side * -0.004, 0.30, 0);
+            jaw.rotation.z = side * 0.14;
+            const pad = solid(new THREE.BoxGeometry(0.034, 0.042, 0.012), dark);
+            jaw.add(pad);
+            const cap = sphere(0.017, dark, 8);
+            cap.scale.set(1, 0.5, 0.36);
+            cap.position.y = 0.02;
+            jaw.add(cap);
+            pivot.add(jaw);
             g.add(pivot);
           });
         }
