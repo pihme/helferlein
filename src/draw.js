@@ -533,20 +533,29 @@ function createDraw(THREE, env = {}) {
           });
         } else if (name === "Cat ears") {
           // Flat triangle on +Z, half-cone bulging toward -Z.
-          const earGeo = (radius, height) => {
+          const earGeo = (radius, height, topW) => {
             const positions = [];
-            const apex = new THREE.Vector3(0, height / 2, 0);
             const seg = 10;
-            const arc = [];
+            const baseY = -height / 2;
+            const topY = height / 2 - (topW / radius) * height;
+            const baseArc = [];
+            const topArc = [];
             for (let i = 0; i <= seg; i++) {
               const t = (i / seg) * Math.PI;
-              arc.push(new THREE.Vector3(Math.cos(t) * radius, -height / 2, -Math.sin(t) * radius));
+              const c = Math.cos(t);
+              const sn = Math.sin(t);
+              baseArc.push(new THREE.Vector3(c * radius, baseY, -sn * radius));
+              topArc.push(new THREE.Vector3(c * topW, topY, -sn * topW));
             }
             const push = (a, b, c) => positions.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
-            push(apex, arc[0], arc[seg]);
-            for (let i = 0; i < seg; i++) push(apex, arc[i], arc[i + 1]);
-            const base = new THREE.Vector3(0, -height / 2, 0);
-            for (let i = 0; i < seg; i++) push(base, arc[i + 1], arc[i]);
+            push(baseArc[0], topArc[0], topArc[seg]);
+            push(baseArc[0], topArc[seg], baseArc[seg]);
+            for (let i = 0; i < seg; i++) {
+              push(baseArc[i], baseArc[i + 1], topArc[i + 1]);
+              push(baseArc[i], topArc[i + 1], topArc[i]);
+            }
+            const base = new THREE.Vector3(0, baseY, 0);
+            for (let i = 0; i < seg; i++) push(base, baseArc[i + 1], baseArc[i]);
             const geo = new THREE.BufferGeometry();
             geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
             geo.computeVertexNormals();
@@ -582,11 +591,16 @@ function createDraw(THREE, env = {}) {
               rig.position.set(hinge[0], hinge[1], hinge[2]);
             }
             g.add(rig);
-            const ear = solid(earGeo(0.10 * s, 0.30 * s), fur);
+            const topW = 0.018 * s;
+            const ear = solid(earGeo(0.10 * s, 0.30 * s, topW), fur);
             ear.position.y = H;
             rig.add(ear);
-            const inner = solid(innerGeo(0.045 * s, 0.14 * s), faceMat);
-            inner.position.set(0, 0.02 * s, 0.008 * s);
+            const cap = solid(new THREE.SphereGeometry(topW, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), fur);
+            cap.position.set(0, 0.15 * s - topW / 0.10 * 0.30, 0);
+            ear.add(cap);
+            // Side gap 0.015s. The bottom gap is twice that. The inner tip stops under the round cap.
+            const inner = solid(innerGeo(0.075 * s, 0.195 * s), faceMat);
+            inner.position.set(0, -0.0225 * s, 0.008 * s);
             ear.add(inner);
           });
         } else if (name === "Dog ears") {
