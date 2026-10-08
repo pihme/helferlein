@@ -1,5 +1,7 @@
 // Four views of one catalog item. Front, side, and top frame the item on its own.
-// Context wears it on the default body (a body is shown as itself) and uses stageCamera().
+// A flat extra stands level in those views; the angle it is worn at stays in context.
+// Context wears it on the default body (a body is shown as itself). The stage camera
+// stays put while the figure fits, and backs up along that view when it would be cut off.
 // A garment is a texture on the body, so on its own it is that shell.
 import * as THREE from "three";
 import { createDraw } from "../src/draw.js";
@@ -59,8 +61,39 @@ function createMugshot(THREE, env) {
       found.quaternion.identity();
       found.scale.set(1, 1, 1);
     }
+    // The beret is built cocked onto the head. Alone, that disc stands level.
+    if (item.kind === "extra") layLevel(root);
     root.updateMatrixWorld(true);
     return root;
+  }
+
+  // Local Y is the short axis of a flat piece. A thicker part is left as it was built.
+  function layLevel(root) {
+    root.updateMatrixWorld(true);
+    let mesh = null;
+    let verts = 0;
+    root.traverse(obj => {
+      if (!obj.isMesh || !obj.geometry || !obj.geometry.attributes.position) return;
+      const comps = [Math.abs(obj.scale.x), Math.abs(obj.scale.y), Math.abs(obj.scale.z)];
+      const ordered = comps.slice().sort((a, b) => a - b);
+      if (ordered[0] === 0 || ordered[0] / ordered[1] > 0.6) return;
+      if (comps[1] !== ordered[0]) return;
+      const count = obj.geometry.attributes.position.count;
+      if (count > verts) {
+        verts = count;
+        mesh = obj;
+      }
+    });
+    if (!mesh) return;
+    const normal = new THREE.Vector3(0, 1, 0).applyQuaternion(mesh.getWorldQuaternion(new THREE.Quaternion())).normalize();
+    if (normal.y < 0) normal.negate();
+    if (normal.y > 0.98) return;
+    const up = new THREE.Vector3(0, 1, 0);
+    const turn = new THREE.Quaternion().setFromUnitVectors(normal, up);
+    const center = new THREE.Box3().setFromObject(root).getCenter(new THREE.Vector3());
+    root.quaternion.copy(turn);
+    root.position.copy(center).sub(center.clone().applyQuaternion(turn));
+    root.updateMatrixWorld(true);
   }
 
   function frameOne(box, dir, up) {
@@ -102,7 +135,8 @@ function createMugshot(THREE, env) {
     return {
       front: frameOne(box, [0, 0, 1], [0, 1, 0]),
       side: frameOne(box, [1, 0, 0], [0, 1, 0]),
-      top: frameOne(box, [0, 1, 0], [0, 0, 1])
+      // The front, face included, points down the panel. Items with no face use this same up.
+      top: frameOne(box, [0, 1, 0], [0, 0, -1])
     };
   }
 
@@ -120,12 +154,73 @@ function createMugshot(THREE, env) {
     return pivot;
   }
 
+  function worldPoints(root) {
+    const points = [];
+    const point = new THREE.Vector3();
+    root.updateMatrixWorld(true);
+    root.traverse(obj => {
+      if (!obj.isMesh || !obj.geometry || !obj.geometry.attributes.position) return;
+      const position = obj.geometry.attributes.position;
+      for (let i = 0; i < position.count; i++) {
+        point.fromBufferAttribute(position, i);
+        points.push(obj.localToWorld(point.clone()));
+      }
+    });
+    return points;
+  }
+
+  function framePeak(points, camera) {
+    camera.updateProjectionMatrix();
+    camera.updateMatrixWorld(true);
+    const point = new THREE.Vector3();
+    let peak = 0;
+    for (const world of points) {
+      point.copy(world).applyMatrix4(camera.matrixWorldInverse);
+      if (point.z > -camera.near) return Infinity;
+      point.applyMatrix4(camera.projectionMatrix);
+      peak = Math.max(peak, Math.abs(point.x), Math.abs(point.y));
+    }
+    return peak;
+  }
+
+  // Back up along the stage view until every vertex sits inside the solo margin.
+  function stageView(rig) {
+    const camera = draw.stageCamera();
+    const points = worldPoints(rig);
+    if (framePeak(points, camera) <= 1) return camera;
+    const target = new THREE.Vector3(0, 1.2, 0);
+    const offset = camera.position.clone().sub(target);
+    const limit = 1 / MARGIN;
+    const place = (scale) => {
+      camera.position.copy(target).addScaledVector(offset, scale);
+      camera.lookAt(target);
+    };
+    let lo = 1;
+    let hi = 1.5;
+    place(hi);
+    while (framePeak(points, camera) > limit && hi < 8) {
+      lo = hi;
+      hi = Math.min(hi * 1.5, 8);
+      place(hi);
+      if (hi === 8) break;
+    }
+    for (let step = 0; step < 18; step++) {
+      const mid = (lo + hi) / 2;
+      place(mid);
+      if (framePeak(points, camera) > limit) lo = mid;
+      else hi = mid;
+    }
+    place(hi);
+    return camera;
+  }
+
   function views(kind, name) {
     const item = resolve(kind, name);
     const look = lookFor(item);
     const solo = take(draw.buildFigure(look, false, "idle"), item);
     const figure = draw.buildFigure(look, false, "idle");
-    return { item, solo, cameras: frameSolo(solo), context: { rig: seat(figure), camera: draw.stageCamera() } };
+    const rig = seat(figure);
+    return { item, solo, cameras: frameSolo(solo), context: { rig, camera: stageView(rig) } };
   }
 
   return { items, views, MARGIN };

@@ -74,7 +74,7 @@ License: **PolyForm Noncommercial 1.0.0** (`LICENSE`). Source-available, not OSI
 
 ## Mugshots
 
-A mugshot is one sheet of a single catalog item, for the status quo of a design and for the reference picture a later test compares against. The sheet is four panels: front, side, and top of the item on its own, then context from the stage camera (`stageCamera` in `src/draw.js`). In context, a garment, a tool, or an extra is worn on the android. A body is shown as itself, and its solo views include the face and the arms. A garment is the cloth on that shell, so its solo views have no face and no arms. A tool's solo views use the axes it was built in, working end toward the top of the front view; the grip appears only in context.
+A mugshot is one sheet of a single catalog item, for the status quo of a design and for the reference picture a later test compares against. The sheet is four panels: front, side, and top of the item on its own, then context. Context starts from the stage camera (`stageCamera` in `src/draw.js`) and backs up along that same view when the figure would leave the frame. A flat extra stands level in the three solo views; the angle it is worn at stays in context. In the top view the front points down, on a body and on every other item. In context, a garment, a tool, or an extra is worn on the android. A body is shown as itself, and its solo views include the face and the arms. A garment is the cloth on that shell, so its solo views have no face and no arms. A tool's solo views use the axes it was built in, working end toward the top of the front view; the grip appears only in context.
 
 The tool is `design/mugshot.js`. The writer is `scripts/mugshots.mjs` (`npm run mugshots`). It is a helper, not part of the figure.
 

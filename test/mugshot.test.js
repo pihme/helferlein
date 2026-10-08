@@ -51,7 +51,9 @@ test("front, side, and top keep the item's axes", () => {
   assert.ok(cameras.front.position.z > 0);
   assert.ok(cameras.side.position.x > 0);
   assert.ok(cameras.top.position.y > 0);
-  assert.ok(screenUp(cameras.top).dot(new THREE.Vector3(0, 0, 1)) > 0.99);
+  assert.ok(screenUp(cameras.top).dot(new THREE.Vector3(0, 0, -1)) > 0.99);
+  const bodyTop = shot.views("shape", "Android").cameras.top;
+  assert.ok(screenUp(bodyTop).dot(new THREE.Vector3(0, 0, -1)) > 0.99);
   assert.ok(screenUp(cameras.front).dot(new THREE.Vector3(0, 1, 0)) > 0.99);
   assert.ok(screenUp(cameras.side).dot(new THREE.Vector3(0, 1, 0)) > 0.99);
 });
@@ -142,6 +144,66 @@ test("solo keeps the item, and context uses the stage camera", () => {
   assert.ok(Math.abs(world.x) < 1e-3);
   assert.ok(Math.abs(world.z) < 1e-3);
   assert.ok(Math.abs(world.y - bodyCenterY(inner)) < 1e-3);
+});
+
+test("a flat extra stands level alone and stays worn in context", () => {
+  const beret = shot.views("extra", "Beret");
+  const meshes = [];
+  beret.solo.traverse(obj => { if (obj.isMesh) meshes.push(obj); });
+  meshes.sort((a, b) => b.geometry.attributes.position.count - a.geometry.attributes.position.count);
+  const up = new THREE.Vector3(0, 1, 0).applyQuaternion(meshes[0].getWorldQuaternion(new THREE.Quaternion()));
+  assert.ok(Math.abs(up.y) > 0.99, up.toArray().join(","));
+  const disc = new THREE.Box3().setFromObject(meshes[0]).getCenter(new THREE.Vector3());
+  const nub = new THREE.Box3().setFromObject(meshes[1]).getCenter(new THREE.Vector3());
+  assert.ok(nub.y > disc.y);
+  const size = new THREE.Box3().setFromObject(beret.solo).getSize(new THREE.Vector3());
+  assert.ok(size.y < size.x && size.y < size.z, size.toArray().join(","));
+
+  const worn = [];
+  beret.context.rig.getObjectByName("extra").traverse(obj => { if (obj.isMesh) worn.push(obj); });
+  worn.sort((a, b) => b.geometry.attributes.position.count - a.geometry.attributes.position.count);
+  const wornUp = new THREE.Vector3(0, 1, 0).applyQuaternion(worn[0].getWorldQuaternion(new THREE.Quaternion()));
+  assert.ok(Math.abs(wornUp.y) < 0.9, wornUp.y);
+
+  const wings = shot.views("extra", "Small wings");
+  assert.equal(wings.solo.quaternion.w, 1);
+  const antenna = shot.views("extra", "Antenna");
+  assert.equal(antenna.solo.quaternion.w, 1);
+  let pitched = false;
+  antenna.solo.traverse(obj => { if (Math.abs(obj.rotation.x - 0.62) < 1e-6) pitched = true; });
+  assert.equal(pitched, true);
+});
+
+test("context backs up along the stage view when the figure leaves the frame", () => {
+  const home = new THREE.Vector3(1.55, 1.72, 3.95);
+  const target = new THREE.Vector3(0, 1.2, 0);
+  const antenna = shot.views("extra", "Antenna");
+  const camera = antenna.context.camera;
+  camera.updateMatrixWorld(true);
+  const offset = camera.position.clone().sub(target);
+  const homeOffset = home.clone().sub(target);
+  assert.ok(offset.clone().normalize().dot(homeOffset.clone().normalize()) > 0.999);
+  assert.ok(offset.length() > homeOffset.length() + 0.05);
+  assert.ok(looking(camera).dot(target.clone().sub(camera.position).normalize()) > 0.999);
+  let peak = 0;
+  const point = new THREE.Vector3();
+  antenna.context.rig.updateMatrixWorld(true);
+  antenna.context.rig.traverse(obj => {
+    if (!obj.isMesh) return;
+    const position = obj.geometry.attributes.position;
+    for (let i = 0; i < position.count; i++) {
+      point.fromBufferAttribute(position, i);
+      const world = obj.localToWorld(point.clone());
+      world.applyMatrix4(camera.matrixWorldInverse);
+      world.applyMatrix4(camera.projectionMatrix);
+      peak = Math.max(peak, Math.abs(world.x), Math.abs(world.y));
+    }
+  });
+  assert.ok(peak <= 1 / shot.MARGIN + 1e-3, peak);
+  assert.ok(peak > 0.75, peak);
+
+  const wrench = shot.views("tool", "Wrench").context.camera;
+  assert.deepEqual(wrench.position.toArray().map(n => Math.round(n * 100) / 100), [1.55, 1.72, 3.95]);
 });
 
 test("an unknown item is rejected", () => {
