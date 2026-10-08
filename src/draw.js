@@ -733,7 +733,7 @@ function createDraw(THREE, env = {}) {
         } else if (name === "Dog ears") {
           [-1, 1].forEach(side => {
             const lean = side * 1.15;
-            const H = 0.16 * s * 2.15;
+            const H = 0.16 * s * 1.45;
             const rig = new THREE.Group();
             rig.name = "ear";
             rig.position.set(side * (r * 1.02) - Math.sin(lean) * H, y + 0.02 * s + Math.cos(lean) * H, 0.07);
@@ -746,11 +746,11 @@ function createDraw(THREE, env = {}) {
             }
             g.add(rig);
             const ear = sphere(0.16 * s, m, 16);
-            ear.scale.set(0.5, 2.15, 0.34);
+            ear.scale.set(0.9, 1.45, 0.62);
             ear.position.y = -H;
             rig.add(ear);
             const inner = sphere(0.095 * s, faceMat, 12);
-            inner.scale.set(0.34, 1.4, 0.18);
+            inner.scale.set(0.62, 0.95, 0.32);
             const px = side * r * 0.14, py = -0.08 * s, c = Math.cos(lean), sn = Math.sin(lean);
             inner.position.set(px * c + py * sn, -H - px * sn + py * c, 0.04);
             rig.add(inner);
