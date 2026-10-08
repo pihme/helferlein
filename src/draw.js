@@ -1123,7 +1123,7 @@ function createDraw(THREE, env = {}) {
           shaft.scale.z = 0.38;
           const head = new THREE.Group();
           head.position.y = 0.355;
-          const arc = Math.PI * 1.65;
+          const arc = Math.PI * 1.3;
           const jaw = solid(new THREE.TorusGeometry(0.046, 0.014, 8, 28, arc), m);
           jaw.rotation.z = -Math.PI / 2 - arc / 2;
           head.add(jaw);
