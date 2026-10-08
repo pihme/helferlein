@@ -1092,7 +1092,50 @@ function createDraw(THREE, env = {}) {
           add(solid(new THREE.CylinderGeometry(0.054, 0.054, 0.026, 14), dark), 0.35);
         } else if (name === "Hammer") {
           add(solid(new THREE.CylinderGeometry(0.022, 0.026, 0.5, 12), m), 0.22);
-          add(solid(new THREE.BoxGeometry(0.26, 0.08, 0.06), m), 0.46);
+          // Trapezoid with a small round on each corner: straight face at +X, slanted peen at -X.
+          const y0 = 0.42, y1 = 0.50, z = 0.03;
+          const raw = [[0.13, y0], [0.13, y1], [-0.04, y1], [-0.14, y0]];
+          const outline = [];
+          for (let i = 0; i < raw.length; i++) {
+            const prev = raw[(i + raw.length - 1) % raw.length];
+            const cur = raw[i];
+            const next = raw[(i + 1) % raw.length];
+            const back = new THREE.Vector2(prev[0] - cur[0], prev[1] - cur[1]);
+            const forward = new THREE.Vector2(next[0] - cur[0], next[1] - cur[1]);
+            const cut = Math.min(0.012, back.length() * 0.35, forward.length() * 0.35);
+            back.normalize();
+            forward.normalize();
+            const start = new THREE.Vector2(cur[0], cur[1]).addScaledVector(back, cut);
+            const end = new THREE.Vector2(cur[0], cur[1]).addScaledVector(forward, cut);
+            for (let k = 0; k <= 3; k++) {
+              const t = k / 3;
+              const mid = start.clone().lerp(end, t);
+              mid.addScaledVector(new THREE.Vector2(cur[0], cur[1]).sub(mid), Math.sin(t * Math.PI) * 0.55);
+              outline.push([mid.x, mid.y]);
+            }
+          }
+          const front = outline.map(([x, y]) => new THREE.Vector3(x, y, z));
+          const rear = outline.map(([x, y]) => new THREE.Vector3(x, y, -z));
+          const positions = [];
+          const push = (p, q, r) => positions.push(p.x, p.y, p.z, q.x, q.y, q.z, r.x, r.y, r.z);
+          const quad = (a, b, c, d) => { push(a, b, c); push(a, c, d); };
+          const center = new THREE.Vector3();
+          front.forEach(p => center.add(p));
+          center.multiplyScalar(1 / front.length);
+          const centerBack = center.clone();
+          centerBack.z = -z;
+          for (let i = 0; i < front.length; i++) {
+            const j = (i + 1) % front.length;
+            push(center, front[i], front[j]);
+            push(centerBack, rear[j], rear[i]);
+            quad(front[i], rear[i], rear[j], front[j]);
+          }
+          const head = new THREE.BufferGeometry();
+          head.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
+          head.computeVertexNormals();
+          const headMat = m.clone();
+          headMat.side = THREE.DoubleSide;
+          add(solid(head, headMat), 0);
         } else if (name === "Saw") {
           add(solid(new THREE.TorusGeometry(0.1, 0.02, 8, 20), m), 0.02);
           add(solid(new THREE.BoxGeometry(0.075, 0.58, 0.01), m), 0.4, -0.014);
