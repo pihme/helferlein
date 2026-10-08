@@ -496,7 +496,7 @@ function createDraw(THREE, env = {}) {
         } else if (name === "Crown") {
           const metal = paint(look, "accessories", { metalness: 0.72, roughness: 0.28 });
           const seat = top - 0.20 * s;
-          put(solid(new THREE.CylinderGeometry(0.36 * s, 0.39 * s, 0.07 * s, 24), metal), 0, seat, 0);
+          put(solid(new THREE.CylinderGeometry(0.36 * s, 0.39 * s, 0.07 * s, 24, 1, true), metal), 0, seat, 0);
           for (let i = 0; i < 5; i++) {
             const a = (i / 5) * Math.PI * 2;
             const h = (0.16 + 0.14 * Math.max(0, Math.cos(a))) * s;
