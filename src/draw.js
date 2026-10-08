@@ -264,8 +264,8 @@ function createDraw(THREE, env = {}) {
           const addFin = (a) => {
             const radial = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
             const tangent = new THREE.Vector3(-Math.sin(a), 0, Math.cos(a));
-            // Root is longer and sunk into the hull. The tip is shorter, so the fin is a trapezoid.
-            const outline = [[0.26, 0.88], [0.48, 0.90], [0.48, 1.02], [0.26, 1.18]];
+            // Root is longer and sunk into the hull. One fifth of the root hangs below the body.
+            const outline = [[0.26, 0.81], [0.48, 0.83], [0.48, 0.95], [0.26, 1.11]];
             const mid = outline.map(([rad, y]) => new THREE.Vector3(radial.x * rad, y, radial.z * rad));
             const front = mid.map(p => p.clone().addScaledVector(tangent, 0.02));
             const back = mid.map(p => p.clone().addScaledVector(tangent, -0.02));
@@ -283,7 +283,8 @@ function createDraw(THREE, env = {}) {
             geo.computeVertexNormals();
             g.add(solid(geo, finMat));
           };
-          for (const a of [0.3, 2.4, 4.5]) addFin(a);
+          const ahead = Math.PI / 2;
+          for (const a of [ahead, ahead + Math.PI * 2 / 3, ahead + Math.PI * 4 / 3]) addFin(a);
           place = { faceY: 1.60, faceZ: 0.26, faceR: 0.26, headTop: 2.14, shoulderY: 1.18, bodyR: 0.32 };
         } else {
           g.add(shell([
