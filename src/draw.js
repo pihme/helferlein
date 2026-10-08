@@ -1149,11 +1149,11 @@ function createDraw(THREE, env = {}) {
         } else if (name === "Brush") {
           const butt = add(sphere(0.018, m, 10), 0.012);
           butt.scale.y = 0.65;
-          add(solid(new THREE.CylinderGeometry(0.016, 0.018, 0.26, 16), m), 0.14);
-          add(solid(new THREE.CylinderGeometry(0.028, 0.018, 0.05, 16), dark), 0.275);
-          add(solid(new THREE.CylinderGeometry(0.032, 0.036, 0.1, 16), dark), 0.345);
-          const tip = add(sphere(0.032, dark, 12), 0.395);
-          tip.scale.y = 0.55;
+          add(solid(new THREE.CylinderGeometry(0.015, 0.018, 0.26, 16), m), 0.14);
+          add(solid(new THREE.CylinderGeometry(0.028, 0.016, 0.045, 16), dark), 0.285);
+          add(solid(new THREE.CylinderGeometry(0.022, 0.04, 0.13, 16), dark), 0.37);
+          const tip = add(sphere(0.022, dark, 12), 0.435);
+          tip.scale.y = 0.65;
         } else if (name === "Clipboard") {
           const board = new THREE.Group();
           const put = (mesh, y, x, z) => { mesh.position.set(x || 0, y || 0, z || 0); board.add(mesh); return mesh; };
