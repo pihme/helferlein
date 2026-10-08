@@ -363,9 +363,70 @@ function createDraw(THREE, env = {}) {
         const y = place.faceY;
         const r = place.faceR;
         if (name === "Top hat") {
-          put(solid(new THREE.CylinderGeometry(0.28 * s, 0.28 * s, 0.035, 24), m), 0, top - 0.01, 0);
-          put(solid(new THREE.CylinderGeometry(0.125 * s, 0.135 * s, 0.24 * s, 20), m), 0, top + 0.11 * s, 0);
-          put(solid(new THREE.CylinderGeometry(0.142 * s, 0.142 * s, 0.045 * s, 20), band), 0, top + 0.035 * s, 0);
+          const side = 0.115 * s;
+          const front = 0.155 * s;
+          const stretch = front / side;
+          const crownH = 0.24 * s;
+          const crown = put(solid(new THREE.CylinderGeometry(side, side, crownH, 32), m), 0, top + crownH * 0.5, 0);
+          crown.scale.z = stretch;
+          const bandH = 0.045 * s;
+          const collar = put(solid(new THREE.CylinderGeometry(side * 1.08, side * 1.08, bandH, 32), band), 0, top + bandH * 0.5, 0);
+          collar.scale.z = stretch;
+          const seg = 56;
+          const steps = 5;
+          const ix = side * 0.62;
+          const iz = front * 0.62;
+          const ox = side + 0.15 * s;
+          const oz = front + 0.15 * s;
+          const curl = 0.04 * s;
+          const thick = 0.012 * s;
+          const y0 = top + 0.004;
+          const cols = seg + 1;
+          const rows = steps + 1;
+          const brim = new THREE.BufferGeometry();
+          const positions = new Float32Array(cols * rows * 2 * 3);
+          const center = (i, k) => {
+            const a = (i / seg) * Math.PI * 2;
+            const t = k / steps;
+            return new THREE.Vector3(
+              Math.sin(a) * (ix + (ox - ix) * t),
+              curl * t * t * Math.sin(a) * Math.sin(a),
+              Math.cos(a) * (iz + (oz - iz) * t)
+            );
+          };
+          const vid = (layer, i, k) => layer * cols * rows + i * rows + k;
+          for (let i = 0; i < cols; i++) {
+            for (let k = 0; k < rows; k++) {
+              const p = center(i, k);
+              const pa = center(i + 0.35, k);
+              const pk = center(i, Math.min(steps, k + 0.35));
+              const nrm = new THREE.Vector3().crossVectors(pa.sub(p.clone()), pk.sub(p.clone()));
+              if (nrm.lengthSq() < 1e-8) nrm.set(0, 1, 0);
+              else nrm.normalize();
+              if (nrm.y < 0) nrm.negate();
+              [p.clone().addScaledVector(nrm, thick * 0.5), p.clone().addScaledVector(nrm, -thick * 0.5)].forEach((v, layer) => {
+                const n = vid(layer, i, k) * 3;
+                positions[n] = v.x;
+                positions[n + 1] = v.y + y0;
+                positions[n + 2] = v.z;
+              });
+            }
+          }
+          const indices = [];
+          for (let i = 0; i < seg; i++) {
+            for (let k = 0; k < steps; k++) {
+              const a = vid(0, i, k), b = vid(0, i + 1, k), c = vid(0, i, k + 1), d = vid(0, i + 1, k + 1);
+              indices.push(a, c, b, b, c, d);
+              const e = vid(1, i, k), f = vid(1, i + 1, k), g = vid(1, i, k + 1), h = vid(1, i + 1, k + 1);
+              indices.push(e, f, g, f, h, g);
+            }
+            indices.push(vid(0, i, steps), vid(0, i + 1, steps), vid(1, i, steps), vid(0, i + 1, steps), vid(1, i + 1, steps), vid(1, i, steps));
+            indices.push(vid(0, i, 0), vid(1, i, 0), vid(0, i + 1, 0), vid(0, i + 1, 0), vid(1, i, 0), vid(1, i + 1, 0));
+          }
+          brim.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+          brim.setIndex(indices);
+          brim.computeVertexNormals();
+          g.add(solid(brim, m));
         } else if (name === "Beret") {
           const beret = put(solid(new THREE.SphereGeometry(0.24 * s, 24, 16, 0, Math.PI * 2, 0, Math.PI * 2 / 3), m), 0.02 * s, top - 0.02 * s, 0);
           beret.scale.set(1.2, 0.42, 1.08);
