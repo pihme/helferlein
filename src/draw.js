@@ -745,14 +745,38 @@ function createDraw(THREE, env = {}) {
               rig.position.set(hinge[0], hinge[1], hinge[2]);
             }
             g.add(rig);
-            const ear = sphere(0.16 * s, m, 16);
-            ear.scale.set(0.9, 1.45, 0.62);
-            ear.position.y = -H;
-            rig.add(ear);
-            const inner = sphere(0.095 * s, faceMat, 12);
-            inner.scale.set(0.62, 0.95, 0.32);
-            const px = side * r * 0.14, py = -0.08 * s, c = Math.cos(lean), sn = Math.sin(lean);
-            inner.position.set(px * c + py * sn, -H - px * sn + py * c, 0.04);
+            // Folded tip. The lobe hangs from the hinge; the outer third turns toward the front.
+            const lobe = shell([
+              [0.02 * s, -0.34 * s],
+              [0.07 * s, -0.30 * s],
+              [0.12 * s, -0.24 * s],
+              [0.15 * s, -0.16 * s],
+              [0.12 * s, -0.08 * s],
+              [0.05 * s, -0.03 * s],
+              [0.02 * s, 0]
+            ], m);
+            lobe.scale.z = 0.62;
+            rig.add(lobe);
+            const fold = new THREE.Group();
+            fold.position.y = -0.24 * s;
+            fold.rotation.x = -0.85;
+            rig.add(fold);
+            const tip = shell([
+              [0.02 * s, -0.26 * s],
+              [0.06 * s, -0.20 * s],
+              [0.09 * s, -0.12 * s],
+              [0.08 * s, -0.04 * s],
+              [0.05 * s, 0]
+            ], m);
+            tip.scale.z = 0.55;
+            fold.add(tip);
+            const cap = sphere(0.032 * s, m, 12);
+            cap.scale.z = 0.7;
+            cap.position.y = -0.24 * s;
+            fold.add(cap);
+            const inner = sphere(0.07 * s, faceMat, 14);
+            inner.scale.set(0.9, 1.15, 0.22);
+            inner.position.set(0, -0.15 * s, 0.085 * s);
             rig.add(inner);
           });
         } else if (name === "Antenna") {
