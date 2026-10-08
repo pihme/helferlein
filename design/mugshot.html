@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Mugshots</title>
+  <style>
+    body { margin: 0; font: 16px/1.4 system-ui, sans-serif; color: #1c2430; background: #d5d0c6; }
+    header { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; padding: 16px 20px 8px; }
+    label { display: grid; gap: 4px; font: 600 13px/1 system-ui, sans-serif; }
+    select { font: 16px/1.2 system-ui, sans-serif; padding: 6px 8px; }
+    p { margin: 0; padding: 0 20px 12px; max-width: 46rem; }
+    canvas { display: block; width: min(100%, 1280px); height: auto; margin: 0 20px 20px; background: #d5d0c6; }
+  </style>
+  <script type="importmap">
+    { "imports": { "three": "../node_modules/three/build/three.module.js" } }
+  </script>
+</head>
+<body>
+  <header>
+    <label>Kind <select id="kind"></select></label>
+    <label>Item <select id="item"></select></label>
+  </header>
+  <p>Front, side, and top show the item on its own. Context uses the stage camera. A garment, a tool, or an extra is worn on the android. A body is shown as itself, with its face and arms. A garment is the cloth on that shell.</p>
+  <canvas id="sheet"></canvas>
+  <script type="module" src="./mugshot.js"></script>
+</body>
+</html>

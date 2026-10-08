@@ -85,7 +85,7 @@ test("a pointed body seats the dish foot and the hat on its own surface", () => 
   look.shape = "Teardrop";
   const drop = draw.buildFigure(look, false, "idle");
   let foot = null;
-  drop.children.forEach(child => {
+  drop.getObjectByName("extra").children.forEach(child => {
     const p = child.geometry && child.geometry.parameters;
     if (p && p.radiusTop === 0.055 * drop.userData.sockets.hatScale) foot = child;
   });

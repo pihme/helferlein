@@ -27,6 +27,7 @@
     "size": "node scripts/size.mjs",
     "typecheck": "tsc -p types/tsconfig.json",
     "test": "node --test",
+    "mugshots": "node scripts/mugshots.mjs",
     "prepack": "npm run build"
   },
   "peerDependencies": {

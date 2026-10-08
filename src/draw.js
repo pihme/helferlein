@@ -341,9 +341,13 @@ function createDraw(THREE, env = {}) {
       }
 
       // One extra per roll. Worn pieces use the accessories role. Grown pieces use the features role.
-      function addExtra(g, look, place, sockets) {
+      // The group is the whole piece. Named parts (ear, wing, antenna, propeller) stay inside it.
+      function addExtra(figure, look, place, sockets) {
         const name = look.extra;
         if (!name || name === "None") return;
+        const g = new THREE.Group();
+        g.name = "extra";
+        figure.add(g);
         const wornNames = { "Top hat": 1, "Beret": 1, "Sombrero": 1, "Pointed hat": 1, "Chef's hat": 1, "Crown": 1 };
         const role = wornNames[name] ? "accessories" : "features";
         const cloth = { roughness: 0.82, metalness: 0, clearcoat: 0, envMapIntensity: 0.12, side: THREE.DoubleSide };

@@ -26,7 +26,7 @@ License: **PolyForm Noncommercial 1.0.0** (`LICENSE`). Source-available, not OSI
 - Size budget: `npm run size` (`scripts/size.mjs`) fails above the fixed raw and gzip budgets. Raising a budget is its own commit with the reason.
 - Public API: `src/index.js` and `types/index.d.ts` change together; `test/types.test.js` checks that the declared catalog, look and exports match the code. `npm run typecheck` compiles `types/check.ts`.
 - Reduced motion and no WebGL are part of the contract: with `prefers-reduced-motion: reduce` (or `reducedMotion: true`) nothing floats or swoops and a roll appears at once; without WebGL `mount` returns the still fallback (`webgl: false`) instead of throwing. `test/mount.test.js` covers both.
-- Layout: `src/` the figure (`index.js` public entry, `figure.js` mount, `machine.js` host events, `roll.js` rolls, `blob.js` stored roll, `draw.js` meshes, `catalog.js`, `motion.js`), `types/` declarations, `demo/` the included host, `site/` the Pages landing page, `prototype/` the throwaway prototype (Three.js via import map from `node_modules`), `design/` notes, `docs/images/` README screenshots, `test/` `node:test` suites, `scripts/` build and size.
+- Layout: `src/` the figure (`index.js` public entry, `figure.js` mount, `machine.js` host events, `roll.js` rolls, `blob.js` stored roll, `draw.js` meshes, `catalog.js`, `motion.js`), `types/` declarations, `demo/` the included host, `site/` the Pages landing page, `prototype/` the throwaway prototype (Three.js via import map from `node_modules`), `design/` notes and the mugshot tool, `docs/images/` README screenshots, `test/` `node:test` suites, `scripts/` build, size, and mugshots.
 - Tests: `npm test` must pass before anything lands on `main`, together with `npm run build`, `npm run size` and `npm run typecheck`. Tests stay offline: no real accounts, tokens or live services.
 - Release paths (only commits touching them can cut a release) are listed in `.github/release.json`. A Dependabot bump of the `three` dev dependency is `chore(deps-dev)` and cuts no release, although it changes the three.js inside `dist/helferlein.min.js`; it ships with the next `feat`/`fix` release.
 - npm: not published. `"private": true` in `package.json` stays until the maintainer decides to publish; the note for a provenance publish step is in `.github/workflows/ci.yml`.
@@ -71,6 +71,20 @@ License: **PolyForm Noncommercial 1.0.0** (`LICENSE`). Source-available, not OSI
 - Site: <https://pihme.github.io/helferlein/>, the live demo and wardrobe, built from `main` by `.github/workflows/pages.yml`: the landing page `site/index.html`, `demo/`, the pure `src/roll.js` and `src/blob.js`, and `dist/` (so `dist/helferlein.min.js` there is always the build of `main`). It runs after a successful CI run on `main` (`workflow_run`), release job included, and checks out `main` again, so after a release it builds the release commit and the files carry the released version. The workflow skips while the repository is private. Do not create a `gh-pages` branch by hand.
 - **Repo description = site tagline.** Keep `site/index.html`, `package.json` `description` and the GitHub repo description in step.
 - Helferlein is not in the family's `family.json` (Jigsaw) or the handbook generator yet; adding it is the maintainer's decision. When it joins, the family rules for the current status, the chronicles and the Jigsaw apply.
+
+## Mugshots
+
+A mugshot is one sheet of a single catalog item, for the status quo of a design and for the reference picture a later test compares against. The sheet is four panels: front, side, and top of the item on its own, then context from the stage camera (`stageCamera` in `src/draw.js`). In context, a garment, a tool, or an extra is worn on the android. A body is shown as itself, and its solo views include the face and the arms. A garment is the cloth on that shell, so its solo views have no face and no arms. A tool's solo views use the axes it was built in, working end toward the top of the front view; the grip appears only in context.
+
+The tool is `design/mugshot.js`. The writer is `scripts/mugshots.mjs` (`npm run mugshots`). It is a helper, not part of the figure.
+
+- `npm run mugshots` writes every item to `design/progress/<folder>/<slug>.png`.
+- `npm run mugshots -- --into final` writes the reference set to `design/final`.
+- `npm run mugshots -- --only wrench` writes one item. A catalog name or its prototype slug both match.
+- `npm run mugshots -- --out <dir>` writes those same folders under `<dir>` instead, for a look that stays out of `design/progress` and `design/final`.
+- `npm run mugshots -- --serve` prints a local URL for `design/mugshot.html` and leaves the viewer up.
+
+Folders are `bodies`, `clothes`, `tools`, and `extras`, and the slug is the prototype picture's name. PNGs under `design/progress` and `design/final` are Git LFS. Headless Chromium is `/snap/bin/chromium`, or the browser in `CHROME` when it lives elsewhere. The run is done when each requested sheet is a PNG and its four panels are labeled Front, Side, Top, and Context.
 
 ## Do not invent
 
