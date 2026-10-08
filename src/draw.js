@@ -367,10 +367,12 @@ function createDraw(THREE, env = {}) {
           put(solid(new THREE.CylinderGeometry(0.125 * s, 0.135 * s, 0.24 * s, 20), m), 0, top + 0.11 * s, 0);
           put(solid(new THREE.CylinderGeometry(0.142 * s, 0.142 * s, 0.045 * s, 20), band), 0, top + 0.035 * s, 0);
         } else if (name === "Beret") {
-          const beret = put(sphere(0.22 * s, m, 24), 0.12 * s, top - 0.045 * s, 0.02);
-          beret.scale.set(1.25, 0.48, 1.05);
-          beret.rotation.set(-0.45, 0.25, -0.7);
-          put(sphere(0.032 * s, band, 12), 0.28 * s, top - 0.01 * s, 0.06);
+          const beret = put(solid(new THREE.SphereGeometry(0.24 * s, 24, 16, 0, Math.PI * 2, 0, Math.PI * 2 / 3), m), 0.02 * s, top - 0.02 * s, 0);
+          beret.scale.set(1.2, 0.42, 1.08);
+          beret.rotation.z = -0.28;
+          const nub = sphere(0.028 * s, band, 12);
+          nub.position.set(0, 0.24 * s, 0);
+          beret.add(nub);
         } else if (name === "Sombrero") {
           put(lathe([
             [0.16 * s, 0.03 * s], [0.36 * s, 0.008 * s], [0.50 * s, 0.02 * s], [0.58 * s, 0.06 * s],
