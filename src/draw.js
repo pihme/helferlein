@@ -673,12 +673,13 @@ function createDraw(THREE, env = {}) {
           hub.position.set(0, sockets.classic ? crown + 0.04 * s : sockets.meshTop - hubH * 0.15, 0);
           g.add(hub);
           hub.add(solid(new THREE.CylinderGeometry(0.05 * s, 0.05 * s, 0.04 * s, 14), band));
+          hub.add(solid(new THREE.SphereGeometry(0.085 * s, 16, 12), band));
           for (let i = 0; i < 3; i++) {
             const arm = new THREE.Group();
             arm.rotation.y = i * (Math.PI * 2 / 3);
-            const blade = solid(new THREE.BoxGeometry(0.30 * s, 0.018 * s, 0.075 * s), m);
-            blade.position.x = 0.19 * s;
-            blade.rotation.z = -0.42;
+            const blade = solid(new THREE.BoxGeometry(0.34 * s, 0.018 * s, 0.075 * s), m);
+            blade.position.x = 0.17 * s;
+            blade.rotation.z = -0.28;
             arm.add(blade);
             hub.add(arm);
           }
