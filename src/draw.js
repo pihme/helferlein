@@ -575,9 +575,9 @@ function createDraw(THREE, env = {}) {
           for (let i = 0; i < 3; i++) {
             const arm = new THREE.Group();
             arm.rotation.y = i * (Math.PI * 2 / 3);
-            const blade = solid(new THREE.BoxGeometry(0.30 * s, 0.018 * s, 0.075 * s), m);
-            blade.position.x = 0.19 * s;
-            blade.rotation.z = -0.42;
+            const blade = solid(new THREE.BoxGeometry(0.34 * s, 0.018 * s, 0.075 * s), m);
+            blade.position.x = 0.17 * s;
+            blade.rotation.z = -0.28;
             arm.add(blade);
             hub.add(arm);
           }
