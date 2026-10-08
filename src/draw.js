@@ -244,7 +244,95 @@ function createDraw(THREE, env = {}) {
         } else if (shape === "Lightbulb") {
           const hot = paint(look, "features", { emissive: colorOf(look, "features"), emissiveIntensity: 1.6 });
           const glass = paint(look, "body", { transparent: true, opacity: 0.22, roughness: 0.04, clearcoat: 1, depthWrite: false, side: THREE.DoubleSide });
-          const filament = add(solid(new THREE.TorusGeometry(0.12, 0.028, 12, 28), hot), 0, 1.62, 0);
+          // A tube along a helix. Three's curve helpers are not in the figure bundle.
+          const helixTube = (radius, tube, y0, y1, turns) => {
+            const steps = Math.max(8, Math.round(turns * 18));
+            const sides = 6;
+            const positions = [];
+            const indices = [];
+            const dy = (y1 - y0) / (turns * Math.PI * 2);
+            for (let i = 0; i <= steps; i++) {
+              const t = i / steps;
+              const a = t * turns * Math.PI * 2;
+              const p = new THREE.Vector3(Math.cos(a) * radius, y0 + (y1 - y0) * t, Math.sin(a) * radius);
+              const tangent = new THREE.Vector3(-Math.sin(a) * radius, dy, Math.cos(a) * radius).normalize();
+              const outward = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
+              outward.addScaledVector(tangent, -outward.dot(tangent));
+              if (outward.lengthSq() < 1e-8) outward.set(1, 0, 0);
+              outward.normalize();
+              const bin = new THREE.Vector3().crossVectors(tangent, outward).normalize();
+              for (let s = 0; s < sides; s++) {
+                const u = (s / sides) * Math.PI * 2;
+                const v = p.clone().addScaledVector(outward, Math.cos(u) * tube).addScaledVector(bin, Math.sin(u) * tube);
+                positions.push(v.x, v.y, v.z);
+              }
+            }
+            for (let i = 0; i < steps; i++) {
+              for (let s = 0; s < sides; s++) {
+                const a = i * sides + s;
+                const b = i * sides + ((s + 1) % sides);
+                const c = (i + 1) * sides + s;
+                const d = (i + 1) * sides + ((s + 1) % sides);
+                indices.push(a, c, b, b, c, d);
+              }
+            }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
+            geo.setIndex(indices);
+            geo.computeVertexNormals();
+            return geo;
+          };
+          const wire = hot.clone();
+          wire.side = THREE.DoubleSide;
+          // Horizontal coil, left to right, bowed upward, sitting behind the face.
+          const archCoil = () => {
+            const turns = 4;
+            const steps = turns * 20;
+            const sides = 6;
+            const tube = 0.0025;
+            const coilR = 0.07;
+            const span = 0.33;
+            const positions = [];
+            const indices = [];
+            const pts = [];
+            for (let i = 0; i <= steps; i++) {
+              const t = i / steps;
+              const a = t * turns * Math.PI * 2;
+              const x = -span / 2 + span * t;
+              const arch = Math.sin(t * Math.PI) * 0.03;
+              pts.push(new THREE.Vector3(x, 1.62 + arch + Math.sin(a) * coilR, Math.cos(a) * coilR));
+            }
+            for (let i = 0; i <= steps; i++) {
+              const prev = pts[Math.max(0, i - 1)];
+              const next = pts[Math.min(steps, i + 1)];
+              const tangent = next.clone().sub(prev).normalize();
+              const outward = new THREE.Vector3(0, 1, 0);
+              outward.addScaledVector(tangent, -outward.dot(tangent));
+              if (outward.lengthSq() < 1e-8) outward.set(0, 0, 1);
+              outward.normalize();
+              const bin = new THREE.Vector3().crossVectors(tangent, outward).normalize();
+              for (let s = 0; s < sides; s++) {
+                const u = (s / sides) * Math.PI * 2;
+                const v = pts[i].clone().addScaledVector(outward, Math.cos(u) * tube).addScaledVector(bin, Math.sin(u) * tube);
+                positions.push(v.x, v.y, v.z);
+              }
+            }
+            for (let i = 0; i < steps; i++) {
+              for (let s = 0; s < sides; s++) {
+                const a = i * sides + s;
+                const b = i * sides + ((s + 1) % sides);
+                const c = (i + 1) * sides + s;
+                const d = (i + 1) * sides + ((s + 1) % sides);
+                indices.push(a, c, b, b, c, d);
+              }
+            }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
+            geo.setIndex(indices);
+            geo.computeVertexNormals();
+            return geo;
+          };
+          const filament = add(solid(archCoil(), wire), 0, 0, 0);
           filament.renderOrder = 1;
           const bulb = shell([
             [0.01, 1.02], [0.12, 1.08], [0.20, 1.22], [0.32, 1.44],
@@ -252,7 +340,12 @@ function createDraw(THREE, env = {}) {
           ], glass);
           bulb.renderOrder = 2;
           g.add(bulb);
-          add(solid(new THREE.CylinderGeometry(0.15, 0.15, 0.27, 40), material), 0, 0.97, 0);
+          const metal = material.clone();
+          metal.side = THREE.DoubleSide;
+          add(solid(new THREE.CylinderGeometry(0.128, 0.118, 0.2, 28), material), 0, 0.95, 0);
+          add(solid(helixTube(0.132, 0.012, 0.88, 1.02, 4), metal), 0, 0, 0);
+          const contact = add(sphere(0.04, material, 14), 0, 0.83, 0);
+          contact.scale.y = 0.7;
           place = { faceY: 1.64, faceZ: 0.30, faceR: 0.30, headTop: 2.14, shoulderY: 1.40, bodyR: 0.30 };
         } else if (shape === "Rocket") {
           add(solid(new THREE.CylinderGeometry(0.26, 0.30, 0.83, 64), material), 0, 1.285, 0);

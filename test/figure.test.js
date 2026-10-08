@@ -65,13 +65,21 @@ test("body sockets keep the prototype measurements", () => {
   assert.equal(snow.userData.place.faceZ, 0.28);
 
   const bulb = catalogBuilder("shape", "Lightbulb")();
+  const bulbBody = bulb.getObjectByName("body");
   let socket = null;
-  bulb.traverse(obj => {
+  let coils = 0;
+  let torus = 0;
+  bulbBody.traverse(obj => {
+    if (!obj.isMesh) return;
     const p = obj.geometry && obj.geometry.parameters;
-    if (p && p.radiusTop === 0.15 && p.height === 0.27) socket = obj;
+    if (p && p.radiusTop === 0.128 && p.height === 0.2) socket = obj;
+    if (obj.geometry.type === "BufferGeometry") coils += 1;
+    if (obj.geometry.type === "TorusGeometry") torus += 1;
   });
   assert.ok(socket);
-  assert.equal(socket.position.y, 0.97);
+  assert.equal(socket.position.y, 0.95);
+  assert.equal(coils, 2);
+  assert.equal(torus, 0);
 });
 
 test("a pointed body seats the dish foot and the hat on its own surface", () => {
