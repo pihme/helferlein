@@ -1251,7 +1251,7 @@ function createDraw(THREE, env = {}) {
           add(solid(head, headMat), 0);
         } else if (name === "Saw") {
           add(solid(new THREE.TorusGeometry(0.1, 0.02, 8, 20), m), 0.02);
-          // The heel sits in the handle. The tooth edge stays straight and the back tapers toward the toe.
+          // The heel meets the top of the ring. The tooth edge stays straight and the back tapers toward the toe.
           const plank = (y0, x0a, x0b, y1, x1a, x1b, thick, mat) => {
             const front = [
               new THREE.Vector3(x0a, y0, thick), new THREE.Vector3(x0b, y0, thick),
@@ -1276,8 +1276,8 @@ function createDraw(THREE, env = {}) {
           plate.side = THREE.DoubleSide;
           const spine = dark.clone();
           spine.side = THREE.DoubleSide;
-          plank(0.06, -0.045, 0.03, 0.68, -0.02, 0.03, 0.005, plate);
-          plank(0.06, -0.05, -0.034, 0.68, -0.028, -0.014, 0.007, spine);
+          plank(0.13, -0.045, 0.03, 0.68, -0.02, 0.03, 0.005, plate);
+          plank(0.13, -0.05, -0.034, 0.68, -0.028, -0.014, 0.007, spine);
           for (let i = 0; i < 16; i++) {
             const tooth = add(solid(new THREE.ConeGeometry(0.017, 0.032, 3), dark), 0.16 + i * 0.034, 0.032);
             tooth.rotation.z = -Math.PI / 2;
