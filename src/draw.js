@@ -1199,9 +1199,21 @@ function createDraw(THREE, env = {}) {
           g.userData.crownAt = [grip.x, grip.y, grip.z];
         } else if (name === "Telescope") {
           add(solid(new THREE.CylinderGeometry(0.016, 0.02, 0.07, 12), dark), 0.04);
-          add(solid(new THREE.CylinderGeometry(0.03, 0.03, 0.15, 14), m), 0.15);
           add(solid(new THREE.CylinderGeometry(0.024, 0.024, 0.018, 12), dark), 0.1);
-          add(solid(new THREE.CylinderGeometry(0.046, 0.032, 0.13, 14), m), 0.28);
+          // The narrow tube stays straight, then rounds into the wide tube.
+          add(lathe([
+            [0.030, 0.075],
+            [0.030, 0.205],
+            [0.030, 0.213],
+            [0.031, 0.222],
+            [0.033, 0.230],
+            [0.034, 0.238],
+            [0.035, 0.247],
+            [0.036, 0.255],
+            [0.040, 0.285],
+            [0.043, 0.315],
+            [0.046, 0.345]
+          ], m), 0);
           add(solid(new THREE.CylinderGeometry(0.054, 0.054, 0.026, 14), dark), 0.35);
         } else if (name === "Hammer") {
           add(solid(new THREE.CylinderGeometry(0.022, 0.026, 0.5, 12), m), 0.22);
