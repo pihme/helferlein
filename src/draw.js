@@ -905,7 +905,8 @@ function createDraw(THREE, env = {}) {
           add(solid(new THREE.CylinderGeometry(0.022, 0.016, 0.045, 12), dark), 0.30);
           add(solid(new THREE.TorusGeometry(0.11, 0.016, 10, 28), m), 0.42);
           const lensMat = shade(0.22, { roughness: 0.08, metalness: 0, clearcoat: 0.8, transparent: true, opacity: 0.55 });
-          const lens = add(solid(new THREE.CylinderGeometry(0.092, 0.092, 0.01, 32), lensMat), 0.42);
+          const lens = add(sphere(0.092, lensMat, 24), 0.42);
+          lens.scale.y = 0.28;
           lens.rotation.x = Math.PI / 2;
         } else if (name === "Brush") {
           add(solid(new THREE.CylinderGeometry(0.014, 0.018, 0.28, 12), m), 0.14);
