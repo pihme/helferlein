@@ -285,7 +285,7 @@ function createDraw(THREE, env = {}) {
           };
           const behind = -Math.PI / 2;
           for (const a of [behind, behind + Math.PI * 2 / 3, behind + Math.PI * 4 / 3]) addFin(a);
-          place = { faceY: 1.60, faceZ: 0.26, faceR: 0.26, headTop: 2.14, shoulderY: 1.18, bodyR: 0.32 };
+          place = { faceY: 1.60, faceZ: 0.26, faceR: 0.26, headTop: 2.14, shoulderY: 1.42, bodyR: 0.32 };
         } else {
           g.add(shell([
             [0.01, 0.42], [0.20, 0.50], [0.34, 0.68], [0.40, 0.92], [0.36, 1.14], [0.34, 1.32],
