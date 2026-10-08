@@ -1150,10 +1150,17 @@ function createDraw(THREE, env = {}) {
           const butt = add(sphere(0.018, m, 10), 0.012);
           butt.scale.y = 0.65;
           add(solid(new THREE.CylinderGeometry(0.015, 0.018, 0.26, 16), m), 0.14);
-          add(solid(new THREE.CylinderGeometry(0.028, 0.016, 0.045, 16), dark), 0.285);
-          add(solid(new THREE.CylinderGeometry(0.022, 0.04, 0.13, 16), dark), 0.37);
-          const tip = add(sphere(0.022, dark, 12), 0.435);
-          tip.scale.y = 0.65;
+          add(solid(new THREE.CylinderGeometry(0.034, 0.018, 0.05, 16), dark), 0.28);
+          // A tad inside the ferrule. The side bows out, then hollows into a point.
+          add(lathe([
+            [0.031, 0],
+            [0.030, 0.020],
+            [0.024, 0.040],
+            [0.014, 0.064],
+            [0.007, 0.096],
+            [0.003, 0.128],
+            [0, 0.152]
+          ], dark), 0.305);
         } else if (name === "Clipboard") {
           const board = new THREE.Group();
           const put = (mesh, y, x, z) => { mesh.position.set(x || 0, y || 0, z || 0); board.add(mesh); return mesh; };
