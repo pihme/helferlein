@@ -352,13 +352,33 @@ function createDraw(THREE, env = {}) {
           const nose = solid(new THREE.ConeGeometry(0.268, 0.46, 64, 1, true), material);
           nose.position.y = 1.91;
           g.add(nose);
-          for (const a of [0.3, 2.4, 4.5]) {
-            const fin = solid(new THREE.BoxGeometry(0.2, 0.24, 0.04), material);
-            fin.position.set(Math.cos(a) * 0.4, 0.98, Math.sin(a) * 0.4);
-            fin.rotation.y = Math.PI / 2 - a;
-            g.add(fin);
-          }
-          place = { faceY: 1.60, faceZ: 0.26, faceR: 0.26, headTop: 2.14, shoulderY: 1.18, bodyR: 0.32 };
+          const finMat = material.clone();
+          finMat.side = THREE.DoubleSide;
+          const addFin = (a) => {
+            const radial = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
+            const tangent = new THREE.Vector3(-Math.sin(a), 0, Math.cos(a));
+            // Root is longer and sunk into the hull. One fifth of the root hangs below the body.
+            const outline = [[0.26, 0.81], [0.48, 0.83], [0.48, 0.95], [0.26, 1.11]];
+            const mid = outline.map(([rad, y]) => new THREE.Vector3(radial.x * rad, y, radial.z * rad));
+            const front = mid.map(p => p.clone().addScaledVector(tangent, 0.008));
+            const back = mid.map(p => p.clone().addScaledVector(tangent, -0.008));
+            const positions = [];
+            const push = (p, q, r) => positions.push(p.x, p.y, p.z, q.x, q.y, q.z, r.x, r.y, r.z);
+            const quad = (w, x, y, z) => { push(w, x, y); push(w, y, z); };
+            quad(front[0], front[1], front[2], front[3]);
+            quad(back[0], back[3], back[2], back[1]);
+            for (let i = 0; i < 4; i++) {
+              const j = (i + 1) % 4;
+              quad(front[i], back[i], back[j], front[j]);
+            }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
+            geo.computeVertexNormals();
+            g.add(solid(geo, finMat));
+          };
+          const behind = -Math.PI / 2;
+          for (const a of [behind, behind + Math.PI * 2 / 3, behind + Math.PI * 4 / 3]) addFin(a);
+          place = { faceY: 1.60, faceZ: 0.26, faceR: 0.26, headTop: 2.14, shoulderY: 1.42, bodyR: 0.32 };
         } else {
           g.add(shell([
             [0.01, 0.42], [0.20, 0.50], [0.34, 0.68], [0.40, 0.92], [0.36, 1.14], [0.34, 1.32],
