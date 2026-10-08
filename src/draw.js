@@ -595,9 +595,23 @@ function createDraw(THREE, env = {}) {
             const ear = solid(earGeo(0.10 * s, 0.30 * s, topW), fur);
             ear.position.y = H;
             rig.add(ear);
-            const cap = solid(new THREE.SphereGeometry(topW, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), fur);
-            cap.position.set(0, 0.15 * s - topW / 0.10 * 0.30, 0);
+            const capY = 0.15 * s - topW / 0.10 * 0.30;
+            const cap = solid(new THREE.SphereGeometry(topW, 14, 8, Math.PI, Math.PI, 0, Math.PI / 2), fur);
+            cap.position.set(0, capY, 0);
             ear.add(cap);
+            const facePts = [];
+            for (let i = 0; i < 8; i++) {
+              const a0 = (i / 8) * Math.PI;
+              const a1 = ((i + 1) / 8) * Math.PI;
+              facePts.push(0, 0, 0, Math.cos(a0) * topW, Math.sin(a0) * topW, 0, Math.cos(a1) * topW, Math.sin(a1) * topW, 0);
+              facePts.push(0, 0, 0, Math.cos(a1) * topW, Math.sin(a1) * topW, 0, Math.cos(a0) * topW, Math.sin(a0) * topW, 0);
+            }
+            const capFaceGeo = new THREE.BufferGeometry();
+            capFaceGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(facePts), 3));
+            capFaceGeo.computeVertexNormals();
+            const capFace = solid(capFaceGeo, fur);
+            capFace.position.set(0, capY, 0.001 * s);
+            ear.add(capFace);
             // Side gap 0.015s. The bottom gap is twice that. The inner tip stops under the round cap.
             const inner = solid(innerGeo(0.075 * s, 0.195 * s), faceMat);
             inner.position.set(0, -0.0225 * s, 0.008 * s);
