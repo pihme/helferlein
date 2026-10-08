@@ -1025,7 +1025,26 @@ function createDraw(THREE, env = {}) {
           add(solid(new THREE.CylinderGeometry(0.054, 0.054, 0.026, 14), dark), 0.35);
         } else if (name === "Hammer") {
           add(solid(new THREE.CylinderGeometry(0.022, 0.026, 0.5, 12), m), 0.22);
-          add(solid(new THREE.BoxGeometry(0.26, 0.08, 0.06), m), 0.46);
+          // Trapezoid: straight face at +X, slanted peen at -X, wider along the bottom.
+          const y0 = 0.42, y1 = 0.50, z = 0.03;
+          const outline = [[0.13, y0], [0.13, y1], [-0.04, y1], [-0.14, y0]];
+          const front = outline.map(([x, y]) => new THREE.Vector3(x, y, z));
+          const back = outline.map(([x, y]) => new THREE.Vector3(x, y, -z));
+          const positions = [];
+          const push = (p, q, r) => positions.push(p.x, p.y, p.z, q.x, q.y, q.z, r.x, r.y, r.z);
+          const quad = (a, b, c, d) => { push(a, b, c); push(a, c, d); };
+          quad(front[0], front[1], front[2], front[3]);
+          quad(back[0], back[3], back[2], back[1]);
+          for (let i = 0; i < 4; i++) {
+            const j = (i + 1) % 4;
+            quad(front[i], back[i], back[j], front[j]);
+          }
+          const head = new THREE.BufferGeometry();
+          head.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
+          head.computeVertexNormals();
+          const headMat = m.clone();
+          headMat.side = THREE.DoubleSide;
+          add(solid(head, headMat), 0);
         } else if (name === "Saw") {
           add(solid(new THREE.TorusGeometry(0.1, 0.02, 8, 20), m), 0.02);
           add(solid(new THREE.BoxGeometry(0.075, 0.58, 0.01), m), 0.4, -0.014);
