@@ -265,10 +265,10 @@ function createDraw(THREE, env = {}) {
             const radial = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
             const tangent = new THREE.Vector3(-Math.sin(a), 0, Math.cos(a));
             // Root is longer and sunk into the hull. One fifth of the root hangs below the body.
-            const outline = [[0.26, 0.828], [0.48, 0.842], [0.48, 0.926], [0.26, 1.038]];
+            const outline = [[0.26, 0.81], [0.48, 0.83], [0.48, 0.95], [0.26, 1.11]];
             const mid = outline.map(([rad, y]) => new THREE.Vector3(radial.x * rad, y, radial.z * rad));
-            const front = mid.map(p => p.clone().addScaledVector(tangent, 0.02));
-            const back = mid.map(p => p.clone().addScaledVector(tangent, -0.02));
+            const front = mid.map(p => p.clone().addScaledVector(tangent, 0.014));
+            const back = mid.map(p => p.clone().addScaledVector(tangent, -0.014));
             const positions = [];
             const push = (p, q, r) => positions.push(p.x, p.y, p.z, q.x, q.y, q.z, r.x, r.y, r.z);
             const quad = (w, x, y, z) => { push(w, x, y); push(w, y, z); };
