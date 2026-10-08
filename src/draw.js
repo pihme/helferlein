@@ -383,10 +383,46 @@ function createDraw(THREE, env = {}) {
           put(solid(new THREE.CylinderGeometry(0.15 * s, 0.17 * s, 0.045 * s, 20), band), 0, top - 0.04 * s, 0);
         } else if (name === "Pointed hat") {
           put(solid(new THREE.CylinderGeometry(0.34 * s, 0.34 * s, 0.03, 24), m), 0, top - 0.01, 0);
-          const cone = put(solid(new THREE.ConeGeometry(0.17 * s, 0.46 * s, 18), m), 0.02 * s, top + 0.16 * s, 0);
-          cone.rotation.z = -0.28;
-          put(solid(new THREE.CylinderGeometry(0.16 * s, 0.18 * s, 0.045 * s, 18), band), 0, top + 0.03 * s, 0);
-          put(sphere(0.026 * s, band, 8), 0, top + 0.035 * s, 0.17 * s);
+          const tipY = 0.48 * s;
+          const bend = 0.22 * s;
+          const baseR = 0.16 * s;
+          const seg = 32;
+          const steps = 18;
+          const cone = new THREE.BufferGeometry();
+          const positions = [];
+          const centerAt = (t) => new THREE.Vector3(0, t * tipY, -bend * t * t);
+          for (let k = 0; k <= steps; k++) {
+            const t = k / steps;
+            const c = centerAt(t);
+            const tan = centerAt(Math.min(1, t + 0.02)).sub(centerAt(Math.max(0, t - 0.02))).normalize();
+            const side = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), tan);
+            if (side.lengthSq() < 1e-8) side.set(1, 0, 0);
+            side.normalize();
+            const bin = new THREE.Vector3().crossVectors(tan, side).normalize();
+            const rad = baseR * (1 - t) + 0.012 * s * t;
+            for (let i = 0; i < seg; i++) {
+              const a = (i / seg) * Math.PI * 2;
+              const p = c.clone().addScaledVector(side, Math.cos(a) * rad).addScaledVector(bin, Math.sin(a) * rad);
+              positions.push(p.x, p.y + top + 0.005, p.z);
+            }
+          }
+          const indices = [];
+          for (let k = 0; k < steps; k++) {
+            for (let i = 0; i < seg; i++) {
+              const a = k * seg + i;
+              const b = k * seg + ((i + 1) % seg);
+              const c = (k + 1) * seg + i;
+              const d = (k + 1) * seg + ((i + 1) % seg);
+              indices.push(a, c, b, b, c, d);
+            }
+          }
+          cone.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+          cone.setIndex(indices);
+          cone.computeVertexNormals();
+          g.add(solid(cone, m));
+          const tip = centerAt(1);
+          put(sphere(0.018 * s, band, 8), tip.x, tip.y + top + 0.012, tip.z);
+          put(solid(new THREE.CylinderGeometry(0.175 * s, 0.175 * s, 0.028 * s, 24), band), 0, top + 0.016, 0);
         } else if (name === "Chef's hat") {
           const bandH = 0.11 * s;
           put(solid(new THREE.CylinderGeometry(0.20 * s, 0.205 * s, bandH, 28), band), 0, top + bandH * 0.15, 0);
