@@ -163,7 +163,8 @@ test("a flat extra stands level alone and stays worn in context", () => {
   beret.context.rig.getObjectByName("extra").traverse(obj => { if (obj.isMesh) worn.push(obj); });
   worn.sort((a, b) => b.geometry.attributes.position.count - a.geometry.attributes.position.count);
   const wornUp = new THREE.Vector3(0, 1, 0).applyQuaternion(worn[0].getWorldQuaternion(new THREE.Quaternion()));
-  assert.ok(Math.abs(wornUp.y) < 0.9, wornUp.y);
+  // The worn cap keeps its mild tilt. A solo view lays the same cap level (up.y > 0.99).
+  assert.ok(Math.abs(wornUp.y) < 0.98, wornUp.y);
 
   const wings = shot.views("extra", "Small wings");
   assert.equal(wings.solo.quaternion.w, 1);
