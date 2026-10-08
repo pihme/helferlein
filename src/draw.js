@@ -286,12 +286,12 @@ function createDraw(THREE, env = {}) {
           wire.side = THREE.DoubleSide;
           // Horizontal coil, left to right, bowed upward, sitting behind the face.
           const archCoil = () => {
-            const turns = 5;
-            const steps = turns * 16;
+            const turns = 4;
+            const steps = turns * 20;
             const sides = 6;
-            const tube = 0.0045;
-            const coilR = 0.018;
-            const span = 0.2;
+            const tube = 0.0025;
+            const coilR = 0.07;
+            const span = 0.22;
             const positions = [];
             const indices = [];
             const pts = [];
