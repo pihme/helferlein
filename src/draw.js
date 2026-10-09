@@ -744,38 +744,23 @@ function createDraw(THREE, env = {}) {
               const hinge = side < 0 ? sockets.earLeft : sockets.earRight;
               rig.position.set(hinge[0], hinge[1], hinge[2]);
             }
+            rig.position.x -= side * 0.04 * s;
             g.add(rig);
-            // Bent ear. A short upper lobe, then a second segment turned downward.
-            const upper = shell([
-              [0.045 * s, -0.22 * s],
-              [0.11 * s, -0.15 * s],
-              [0.13 * s, -0.07 * s],
-              [0.07 * s, -0.02 * s],
-              [0.02 * s, 0]
+            // The rounded paddle only, a tenth larger than the notched flap's lower lobe.
+            const ear = shell([
+              [0.022 * s, -0.264 * s],
+              [0.066 * s, -0.20 * s],
+              [0.099 * s, -0.12 * s],
+              [0.077 * s, -0.044 * s],
+              [0.03 * s, 0]
             ], m);
-            upper.scale.z = 0.62;
-            rig.add(upper);
-            const bend = new THREE.Group();
-            bend.position.y = -0.16 * s;
-            bend.rotation.z = side * -0.9;
-            rig.add(bend);
-            const lower = shell([
-              [0.02 * s, -0.30 * s],
-              [0.055 * s, -0.24 * s],
-              [0.08 * s, -0.14 * s],
-              [0.07 * s, -0.05 * s],
-              [0.045 * s, 0]
-            ], m);
-            lower.scale.z = 0.58;
-            bend.add(lower);
-            const cap = sphere(0.03 * s, m, 12);
-            cap.scale.z = 0.7;
-            cap.position.y = -0.28 * s;
-            bend.add(cap);
-            const inner = sphere(0.048 * s, faceMat, 14);
-            inner.scale.set(0.75, 1.25, 0.28);
-            inner.position.set(0, -0.14 * s, 0.048 * s);
-            bend.add(inner);
+            ear.scale.z = 0.58;
+            ear.position.y = -0.18 * s;
+            rig.add(ear);
+            const inner = sphere(0.055 * s, faceMat, 14);
+            inner.scale.set(0.8, 1.35, 0.28);
+            inner.position.set(0, -0.30 * s, 0.05 * s);
+            rig.add(inner);
           });
         } else if (name === "Antenna") {
           const metal = paint(look, "features", { metalness: 0.78, roughness: 0.34, clearcoat: 0.05, side: THREE.DoubleSide });
