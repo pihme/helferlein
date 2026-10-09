@@ -744,7 +744,7 @@ function createDraw(THREE, env = {}) {
               const hinge = side < 0 ? sockets.earLeft : sockets.earRight;
               rig.position.set(hinge[0], hinge[1], hinge[2]);
             }
-            rig.position.x -= side * 0.04 * s;
+            rig.position.x -= side * 0.015 * s;
             g.add(rig);
             // The rounded paddle only, a tenth larger than the notched flap's lower lobe.
             const ear = shell([
