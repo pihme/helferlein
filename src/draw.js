@@ -773,26 +773,41 @@ function createDraw(THREE, env = {}) {
           const bowlOnFoot = footY + footH * 0.5 + 0.004 - 0.045 * s;
           antenna.position.set(0, sockets.classic ? footY + 0.09 * s : bowlOnFoot, 0);
           g.add(antenna);
-          const neck = solid(new THREE.CylinderGeometry(0.016 * s, 0.022 * s, 0.09 * s, 8), metal);
-          neck.position.y = -0.02 * s;
+          const neckBottom = footY + footH * 0.5 - antenna.position.y - 0.004 * s;
+          const neckTop = 0.06 * s;
+          const neck = solid(new THREE.CylinderGeometry(0.016 * s, 0.022 * s, neckTop - neckBottom, 8), metal);
+          neck.position.y = (neckTop + neckBottom) * 0.5;
           antenna.add(neck);
           const head = new THREE.Group();
-          head.position.y = 0.035 * s;
+          head.position.y = 0.012 * s;
           head.rotation.x = 0.62;
           antenna.add(head);
+          // A little shallower than the deep bowl. The +Z rim is the low side after the tilt.
           head.add(lathe([
-            [0.02 * s, 0.01 * s], [0.08 * s, 0.03 * s], [0.15 * s, 0.075 * s], [0.21 * s, 0.145 * s],
-            [0.225 * s, 0.175 * s], [0.20 * s, 0.15 * s], [0.14 * s, 0.085 * s], [0.07 * s, 0.042 * s], [0.02 * s, 0.022 * s]
+            [0.02 * s, 0.008 * s], [0.08 * s, 0.024 * s], [0.15 * s, 0.060 * s], [0.21 * s, 0.116 * s],
+            [0.225 * s, 0.140 * s], [0.20 * s, 0.120 * s], [0.14 * s, 0.068 * s], [0.07 * s, 0.034 * s], [0.02 * s, 0.018 * s]
           ], metal));
           const arm = new THREE.Group();
-          arm.position.set(0, 0.11 * s, 0.15 * s);
-          arm.rotation.x = -0.95;
+          arm.position.set(0, 0.13 * s, 0.19 * s);
+          arm.rotation.x = -0.45;
           head.add(arm);
-          const rod = solid(new THREE.CylinderGeometry(0.007 * s, 0.007 * s, 0.20 * s, 6), metal);
-          rod.position.y = 0.09 * s;
+          const reach = 0.135 * s;
+          const rodEnd = reach + 0.012 * s;
+          const rodStart = -0.008 * s;
+          const rodSpan = rodEnd - rodStart;
+          const rod = solid(new THREE.CylinderGeometry(0.008 * s, 0.008 * s, rodSpan, 8), metal);
+          rod.position.y = (rodStart + rodEnd) * 0.5;
           arm.add(rod);
-          const lnb = solid(new THREE.CylinderGeometry(0.026 * s, 0.016 * s, 0.05 * s, 8), metal);
-          lnb.position.y = 0.20 * s;
+          const lnb = solid(new THREE.CylinderGeometry(0.016 * s, 0.028 * s, 0.055 * s, 8), metal);
+          lnb.position.y = reach;
+          const tilt = -0.45;
+          const feedHead = new THREE.Vector3(0, 0.13 * s + Math.cos(tilt) * reach, 0.19 * s + Math.sin(tilt) * reach);
+          const toDish = new THREE.Vector3(0, 0.04 * s, 0).sub(feedHead).normalize();
+          const inv = -tilt;
+          const ty = toDish.y * Math.cos(inv) - toDish.z * Math.sin(inv);
+          const tz = toDish.y * Math.sin(inv) + toDish.z * Math.cos(inv);
+          // The wide cap is local -Y. Point it at the dish.
+          lnb.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -ty, -tz).normalize());
           arm.add(lnb);
         } else if (name === "Halo") {
           const halo = put(solid(new THREE.TorusGeometry(0.34 * s, 0.034 * s, 10, 32), hot), 0, crown + 0.16 * s, 0);
