@@ -825,7 +825,7 @@ function createDraw(THREE, env = {}) {
             if (sockets.classic) beam.position.set(side * 0.12 * s, crown + 0.01 * s, 0);
             else beam.position.set(side * sockets.antlerR * 0.92, sockets.antlerY, 0);
             g.add(beam);
-            // One mesh per curve, so the segments do not crease. The tips stay apart.
+            // One mesh per curve. The tines leave at wide angles so they do not cross in the front view.
             const at = (x, y, z) => [side * x * s, y * s, z * s];
             const horn = (points, r0, r1) => {
               const rings = 8;
@@ -873,14 +873,14 @@ function createDraw(THREE, env = {}) {
               beam.add(solid(geo, m));
             };
             const A = at(0, 0, 0);
-            const B = at(0.05, 0.08, 0);
-            const C = at(0.10, 0.16, 0);
-            const D = at(0.13, 0.24, 0);
+            const B = at(0.12, 0.06, 0);
+            const C = at(0.20, 0.15, 0);
+            const D = at(0.26, 0.26, 0);
             horn([A, B, C, D], 0.040 * s, 0.018 * s);
-            horn([D, at(0.16, 0.30, 0), at(0.18, 0.38, 0)], 0.014 * s, 0.007 * s);
-            horn([D, at(0.20, 0.28, 0), at(0.26, 0.32, 0)], 0.014 * s, 0.007 * s);
-            horn([C, at(0.16, 0.22, 0), at(0.18, 0.30, 0)], 0.015 * s, 0.007 * s);
-            horn([B, at(0.14, 0.07, 0.02), at(0.20, 0.11, 0.03)], 0.015 * s, 0.007 * s);
+            horn([D, at(0.22, 0.34, 0), at(0.18, 0.44, 0)], 0.014 * s, 0.007 * s);
+            horn([D, at(0.34, 0.32, 0), at(0.42, 0.40, 0)], 0.014 * s, 0.007 * s);
+            horn([C, at(0.32, 0.18, 0), at(0.40, 0.30, 0)], 0.015 * s, 0.007 * s);
+            horn([B, at(0.24, 0.02, 0), at(0.34, 0.08, 0)], 0.015 * s, 0.007 * s);
           });
         } else if (name === "Propeller") {
           const hub = new THREE.Group();
