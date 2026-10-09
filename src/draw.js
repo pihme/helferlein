@@ -733,7 +733,7 @@ function createDraw(THREE, env = {}) {
         } else if (name === "Dog ears") {
           [-1, 1].forEach(side => {
             const lean = side * 1.15;
-            const H = 0.16 * s * 2.15;
+            const H = 0.16 * s * 1.45;
             const rig = new THREE.Group();
             rig.name = "ear";
             rig.position.set(side * (r * 1.02) - Math.sin(lean) * H, y + 0.02 * s + Math.cos(lean) * H, 0.07);
@@ -744,15 +744,22 @@ function createDraw(THREE, env = {}) {
               const hinge = side < 0 ? sockets.earLeft : sockets.earRight;
               rig.position.set(hinge[0], hinge[1], hinge[2]);
             }
+            rig.position.x -= side * 0.015 * s;
             g.add(rig);
-            const ear = sphere(0.16 * s, m, 16);
-            ear.scale.set(0.5, 2.15, 0.34);
-            ear.position.y = -H;
+            // The rounded paddle only, a tenth larger than the notched flap's lower lobe.
+            const ear = shell([
+              [0.022 * s, -0.264 * s],
+              [0.066 * s, -0.20 * s],
+              [0.099 * s, -0.12 * s],
+              [0.077 * s, -0.044 * s],
+              [0.03 * s, 0]
+            ], m);
+            ear.scale.z = 0.58;
+            ear.position.y = -0.18 * s;
             rig.add(ear);
-            const inner = sphere(0.095 * s, faceMat, 12);
-            inner.scale.set(0.34, 1.4, 0.18);
-            const px = side * r * 0.14, py = -0.08 * s, c = Math.cos(lean), sn = Math.sin(lean);
-            inner.position.set(px * c + py * sn, -H - px * sn + py * c, 0.04);
+            const inner = sphere(0.055 * s, faceMat, 14);
+            inner.scale.set(0.8, 1.35, 0.28);
+            inner.position.set(0, -0.30 * s, 0.05 * s);
             rig.add(inner);
           });
         } else if (name === "Antenna") {
