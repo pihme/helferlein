@@ -784,12 +784,23 @@ function createDraw(THREE, env = {}) {
           arm.position.set(0, 0.13 * s, 0.19 * s);
           arm.rotation.x = -0.45;
           head.add(arm);
-          const rodLen = 0.12 * s;
-          const rod = solid(new THREE.CylinderGeometry(0.012 * s, 0.012 * s, rodLen, 8), metal);
-          rod.position.y = rodLen * 0.45;
+          const reach = 0.135 * s;
+          const rodEnd = reach + 0.012 * s;
+          const rodStart = -0.008 * s;
+          const rodSpan = rodEnd - rodStart;
+          const rod = solid(new THREE.CylinderGeometry(0.008 * s, 0.008 * s, rodSpan, 8), metal);
+          rod.position.y = (rodStart + rodEnd) * 0.5;
           arm.add(rod);
-          const lnb = solid(new THREE.CylinderGeometry(0.028 * s, 0.016 * s, 0.055 * s, 8), metal);
-          lnb.position.y = rodLen * 0.92;
+          const lnb = solid(new THREE.CylinderGeometry(0.016 * s, 0.028 * s, 0.055 * s, 8), metal);
+          lnb.position.y = reach;
+          const tilt = -0.45;
+          const feedHead = new THREE.Vector3(0, 0.13 * s + Math.cos(tilt) * reach, 0.19 * s + Math.sin(tilt) * reach);
+          const toDish = new THREE.Vector3(0, 0.04 * s, 0).sub(feedHead).normalize();
+          const inv = -tilt;
+          const ty = toDish.y * Math.cos(inv) - toDish.z * Math.sin(inv);
+          const tz = toDish.y * Math.sin(inv) + toDish.z * Math.cos(inv);
+          // The wide cap is local -Y. Point it at the dish.
+          lnb.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -ty, -tz).normalize());
           arm.add(lnb);
         } else if (name === "Halo") {
           const halo = put(solid(new THREE.TorusGeometry(0.34 * s, 0.034 * s, 10, 32), hot), 0, crown + 0.16 * s, 0);
