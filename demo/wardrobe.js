@@ -26,7 +26,7 @@ const store = loadStore();
 document.documentElement.style.setProperty("--wash", store.background);
 let figure;
 try {
-  figure = mount(document.getElementById("stage"));
+  figure = mount(document.getElementById("stage"), { frame: true });
 } catch (error) {
   const note = document.createElement("p");
   note.className = "boot-error";

@@ -55,6 +55,11 @@ export interface MountOptions {
    * setting, also when it changes while the page is open.
    */
   reducedMotion?: boolean;
+  /**
+   * Back the stage camera up along the same view until the figure fits,
+   * including when it is turned. Left out, the camera stays at the stage view.
+   */
+  frame?: boolean;
 }
 
 export interface Figure {

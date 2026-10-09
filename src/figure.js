@@ -359,8 +359,15 @@ function mountWith(element, THREE, options = {}, env = {}) {
   }
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 40);
-  camera.position.set(1.55, 1.72, 3.95);
-  camera.lookAt(0, 1.2, 0);
+  const lookTarget = new THREE.Vector3(0, 1.2, 0);
+  const homeOffset = new THREE.Vector3(1.55, 0.52, 3.95);
+  const boundsCenter = new THREE.Vector3();
+  const scratch = new THREE.Vector3();
+  const rightAxis = new THREE.Vector3();
+  const upAxis = new THREE.Vector3();
+  let boundsRadius = 0;
+  camera.position.copy(lookTarget).add(homeOffset);
+  camera.lookAt(lookTarget);
   scene.add(new THREE.HemisphereLight(0xfff4e8, 0x93a6bb, 0.65));
   const key = new THREE.DirectionalLight(0xfff8f1, 2.5);
   key.position.set(2.6, 4.4, 3.4);
@@ -398,6 +405,84 @@ function mountWith(element, THREE, options = {}, env = {}) {
     return state.presence === "present" ? { y: 0, s: 1 } : { y: -0.22, s: 0.6 };
   }
 
+  // Back up along the stage view until a sphere around the figure fits. The
+  // sphere keeps a turn from clipping. Scale 1 is the demo camera.
+  function placeFrame(scale) {
+    camera.position.copy(lookTarget).addScaledVector(homeOffset, scale);
+    camera.lookAt(lookTarget);
+    camera.updateProjectionMatrix();
+    camera.updateMatrixWorld(true);
+  }
+
+  function framePeak(scale) {
+    placeFrame(scale);
+    rightAxis.set(1, 0, 0).applyQuaternion(camera.quaternion);
+    upAxis.set(0, 1, 0).applyQuaternion(camera.quaternion);
+    let max = 0;
+    for (const axis of [rightAxis, upAxis]) {
+      for (const sign of [1, -1]) {
+        scratch.copy(boundsCenter).addScaledVector(axis, boundsRadius * sign);
+        scratch.project(camera);
+        if (Number.isFinite(scratch.x) && Number.isFinite(scratch.y)) {
+          max = Math.max(max, Math.abs(scratch.x), Math.abs(scratch.y));
+        }
+      }
+    }
+    return max;
+  }
+
+  function solveFrame() {
+    if (!options.frame || !(boundsRadius > 0)) return;
+    const limit = 0.9;
+    if (framePeak(1) <= limit) return;
+    let lo = 1;
+    let hi = 1.35;
+    while (framePeak(hi) > limit && hi < 6) {
+      lo = hi;
+      hi = Math.min(hi * 1.35, 6);
+    }
+    for (let step = 0; step < 14; step++) {
+      const mid = (lo + hi) / 2;
+      if (framePeak(mid) > limit) lo = mid;
+      else hi = mid;
+    }
+    placeFrame(hi);
+  }
+
+  function measureFrame() {
+    if (!options.frame) return;
+    // Fit the summoned figure. The frame loop parks the mesh on the pivot and
+    // may still be mid-swoop when a look is rebuilt.
+    const savedScale = rig.scale.x;
+    const savedRigY = rig.position.y;
+    const savedInnerY = inner.position.y;
+    const savedRotX = inner.rotation.x;
+    const savedRotZ = inner.rotation.z;
+    rig.position.y = 0;
+    rig.scale.setScalar(1);
+    inner.position.y = -pivotY;
+    inner.rotation.x = 0;
+    inner.rotation.z = 0;
+    inner.updateWorldMatrix(true, true);
+    pivot.getWorldPosition(boundsCenter);
+    boundsRadius = 0;
+    inner.traverse(obj => {
+      if (!obj.isMesh || !obj.geometry || !obj.geometry.attributes.position) return;
+      const pos = obj.geometry.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        scratch.fromBufferAttribute(pos, i);
+        obj.localToWorld(scratch);
+        boundsRadius = Math.max(boundsRadius, scratch.distanceTo(boundsCenter));
+      }
+    });
+    rig.scale.setScalar(savedScale || 1);
+    rig.position.y = savedRigY;
+    inner.position.y = savedInnerY;
+    inner.rotation.x = savedRotX;
+    inner.rotation.z = savedRotZ;
+    solveFrame();
+  }
+
   function rebuild() {
     const look = screenLook(state, now(), motion.calm);
     drawnFace = look.expression;
@@ -405,6 +490,7 @@ function mountWith(element, THREE, options = {}, env = {}) {
     const activity = state.presence === "present" ? state.activity : "idle";
     inner.add(draw.buildFigure(look, state.presence !== "present", activity));
     seatPivot();
+    measureFrame();
     const pad = screenPad(inner, camera);
     if (pad != null && element.style) element.style.setProperty("--mesh-pad", pad.toFixed(4));
     target = goal();
@@ -535,8 +621,11 @@ function mountWith(element, THREE, options = {}, env = {}) {
     const h = element.clientHeight || canvas.clientHeight;
     if (w && h) {
       renderer.setSize(w, h, false);
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
+      const aspect = w / h;
+      const aspectChanged = Math.abs(aspect - camera.aspect) > 0.001;
+      camera.aspect = aspect;
+      if (options.frame && aspectChanged) solveFrame();
+      else camera.updateProjectionMatrix();
     }
     renderer.render(scene, camera);
     raf = requestFrame(frame);
