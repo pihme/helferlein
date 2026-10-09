@@ -1,6 +1,6 @@
 # Tools
 
-Notes from the visual prototype. The drawing lives in `prototype/helferlein.prototype.html`, in `makeTool` and `HOLDS`. These pages record the tools that stayed. Each page has a screenshot and the code that drew it.
+Notes from the visual prototype. The drawing lives in `prototype/helferlein.prototype.html`, in `makeTool` and `HOLDS`. These pages record the tools that stayed. Each page has a screenshot and the code that drew it. The shipped look of each tool is the sheet in `design/locked/tools`.
 
 A tool is a mesh in the right hand. The mesh is built flat in local XY. Local +Y runs toward the working end. Local +X is the belly, which is screen-down when the hold roll is 0.
 

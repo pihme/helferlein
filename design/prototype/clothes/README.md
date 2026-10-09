@@ -1,6 +1,6 @@
 # Clothes
 
-Notes from the visual prototype. The drawing lives in `prototype/helferlein.prototype.html`, in `clothesMap`. These pages record the clothes that stayed. Each page has a screenshot and the code that drew it.
+Notes from the visual prototype. The drawing lives in `prototype/helferlein.prototype.html`, in `clothesMap`. These pages record the clothes that stayed. Each page has a screenshot and the code that drew it. The shipped look of each garment is the sheet in `design/locked/clothes`.
 
 Clothes are a texture on the body. They are not a separate mesh. The pattern is shades of the one clothes hue. A second hue is not added.
 

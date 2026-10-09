@@ -22,7 +22,7 @@ Helferlein draws only the figure. The page that embeds it (the *host*) owns ever
 
 ## Status
 
-The figure, the host contract, and the demo are implemented and covered by tests, which CI runs together with the build, a fixed size budget, and the type declarations. The catalog has eight bodies, five rollable expressions, six garments, twelve tools, and fourteen extras. The figure respects reduced motion and falls back to a still silhouette without WebGL. Still open, from [SPEC.md, section 10](SPEC.md#10-open): the base drawing, the lightness and chroma numbers per color role, another pass at the tool meshes and how each tool is held, and the placement of some extras. Helferlein is not published to npm; builds come from [GitHub Releases](https://github.com/pihme/helferlein/releases) or a checkout.
+The figure, the host contract, and the demo are implemented and covered by tests, which CI runs together with the build, a fixed size budget, and the type declarations. The catalog has eight bodies, five rollable expressions, six garments, twelve tools, and fourteen extras. The figure respects reduced motion and falls back to a still silhouette without WebGL. Each catalog look is locked. The sheets are in `design/locked` ([SPEC.md, section 9](SPEC.md#9-the-locked-look)). Still open, from [SPEC.md, section 10](SPEC.md#10-open): the lightness and chroma numbers per color role, where warm and cool meet in the green band, and whether each tool’s grip matches the hold notes. Helferlein is not published to npm; builds come from [GitHub Releases](https://github.com/pihme/helferlein/releases) or a checkout.
 
 ## Screenshots
 

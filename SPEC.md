@@ -26,7 +26,7 @@ The host owns whatever UI sits around it. The avatar does not draw that UI and d
 - Not a chat application, and not a particular surrounding UI.
 - Not a general character creator the person operates. The host rolls a new look. The person does not pick the parts.
 - Not one fixed costume that means “done.” Each time the page shows finished work, the look changes.
-- Not a copy of any existing character. A sleek floating body is a direction for the base drawing. The drawing is not settled. Reference sketches, not a design: [sheet](assets/helferlein-poses.svg), [resting](assets/helferlein-lamp.svg), [idle](assets/helferlein-idle.svg), [thinking](assets/helferlein-thinking.svg), [applied](assets/helferlein-applied.svg). The resting sketch is the sealed form. Those sketches are concept art for the shape of the objects. They are not a reference for how a tool is held.
+- Not a copy of any existing character. The shipped drawing is the catalog in section 8, and each part’s look is its locked sheet (section 9). Earlier sketches, kept as concept art: [sheet](assets/helferlein-poses.svg), [resting](assets/helferlein-lamp.svg), [idle](assets/helferlein-idle.svg), [thinking](assets/helferlein-thinking.svg), [applied](assets/helferlein-applied.svg). The resting sketch is the sealed form. Those sketches are concept art for the shape of the objects. They are not a reference for how a tool is held.
 
 ## 5. Vocabulary
 
@@ -125,34 +125,31 @@ Rules the function must keep:
 - Pear: small head, wide torso
 - Egg: one rounded capsule
 - Teardrop: narrow top, round base
-- Snowman: stacked spheres, the lowest one larger than the ones above
-- Lightbulb: a bulb that narrows into a small straight cylindrical socket, with a filament inside
-- Rocket: pointed top, small side fins
+- Snowman: three stacked spheres, the lowest the largest
+- Lightbulb: a glass bulb over a straight socket with a screw thread, and a filament coil inside the glass
+- Rocket: a pointed nose on a hard shoulder, and three side fins
 
 **Facial expression.** A roll may choose neutral, curious, pleased, surprised, or wink. Resting (eyes shut) is the dismissed face. Focused and determined are the working pulse.
 
 **Clothes.** None, pleated shirt, blouse, t-shirt, turtleneck, striped shirt, suit. Clothes are a texture on the body, not a separate shape. The blouse is a floral print. Cape, apron, vest, sash, collar, one strap, scarf, sweater, and dress were dropped.
 
-**Tool in hand.** None, wrench, pencil, magnifying glass, brush, clipboard, watering can, telescope, hammer, saw, fairy wand, scissors, tongs. Lamp, screwdriver, flute, net, camera, compass, trowel, whisk, stethoscope, tape measure, cooking spoon, spatula, and hook were dropped. The magic wand became the fairy wand. The right hand holds the tool. The grip is the ordinary way a person holds that object in one fist. Those grips are recorded in `design/holds.md`. The pose sketches are not a hold reference. The prototype hold angles are not the implementation.
+**Tool in hand.** None, wrench, pencil, magnifying glass, brush, clipboard, watering can, telescope, hammer, saw, fairy wand, scissors, tongs. Lamp, screwdriver, flute, net, camera, compass, trowel, whisk, stethoscope, tape measure, cooking spoon, spatula, and hook were dropped. The magic wand became the fairy wand. The right hand holds the tool. The grip is the ordinary way a person holds that object in one fist. Those grips are recorded in `design/holds.md`. The pose sketches are not a hold reference. The prototype hold angles are not the implementation. The brush comes to a sharp tip and stays narrower than its ferrule, full beside the ferrule and hollowed into the point. The telescope is two tubes, with the corner between them smoothed.
 
-**Extra.** None, top hat, beret, sombrero, pointed hat, chef's hat, crown, bunny ears, cat ears, dog ears, antenna, halo, small wings, antlers, propeller. A gain or a swap picks one of these. Section 6 says when. The cowboy hat became the sombrero. Flower, mask, beanie, party hat, cap, bow, bow tie, hair ribbons, glasses, eye patch, monocle, headphones, feather, necklace, earmuffs, bandana, medal, veil, elf ears, cheek marks, one small horn, fin on the head, whiskers, beak, snout, carrot nose, buttons, sprinkles, flame, tusks, fangs, a tail, spikes, a mane, a tuft of hair, a trunk, gills, spots, a third eye, and stripes were dropped. Animal ears are only the three that read apart: long bunny ears, pointed cat ears, floppy dog ears. Fox ears and mouse ears are not in the list.
+**Extra.** None, top hat, beret, sombrero, pointed hat, chef's hat, crown, bunny ears, cat ears, dog ears, antenna, halo, small wings, antlers, propeller. A gain or a swap picks one of these. Section 6 says when. The cowboy hat became the sombrero. Flower, mask, beanie, party hat, cap, bow, bow tie, hair ribbons, glasses, eye patch, monocle, headphones, feather, necklace, earmuffs, bandana, medal, veil, elf ears, cheek marks, one small horn, fin on the head, whiskers, beak, snout, carrot nose, buttons, sprinkles, flame, tusks, fangs, a tail, spikes, a mane, a tuft of hair, a trunk, gills, spots, a third eye, and stripes were dropped. Animal ears are only the three that read apart: long bunny ears, pointed cat ears on the front of the head, and floppy dog ears as a rounded paddle on each cheek. Fox ears and mouse ears are not in the list. The beret is a soft cap tilted over the forehead. The pointed hat’s tip points back. The antenna is one dish on a neck, with one arm, and the wide face of the feed toward the dish. The antlers branch into tines that fan apart. The crown is a band with points, open so the head shows through.
 
-## 9. Ideas, not a hard list
+## 9. The locked look
 
-The lists above, including the bits built into a shape (the lightbulb’s filament), are ideas for the roll. They are not a requirement to ship every item, and they are not finished designs.
+Every body, garment, tool, and extra in section 8 has a finished look. The sheet is `design/locked/bodies`, `design/locked/clothes`, `design/locked/tools`, or `design/locked/extras`, named with the prototype picture’s slug. Each sheet is four panels: Front, Side, Top, and Context. That sheet is the look, and the item stays as the sheet. Where a sheet and an older note disagree, the sheet wins.
 
-The prototype pass is done. The entries that stayed, with a screenshot and the drawing, are in `design/prototype/bodies`, `design/prototype/clothes`, `design/prototype/tools`, and `design/prototype/extras`.
+`design/prototype/bodies`, `design/prototype/clothes`, `design/prototype/tools`, and `design/prototype/extras` record the earlier pass, with their screenshots and the code that drew them.
 
-The color rules above are rules. The lightness and chroma numbers, and the warm/cool cut in the green band, are still open.
+The color rules in section 8 are rules. The lightness and chroma numbers, and the warm/cool cut in the green band, are still open. The grip notes in `design/holds.md` are still the reference for how a tool is held. The locked sheet shows the grip the figure uses today.
 
 ## 10. Open
 
-- The base drawing.
 - The lightness and chroma numbers for each color role.
 - Where the warm/cool cut sits in the green band.
-- The tool meshes need another pass.
-- The holding position of each tool needs another pass.
-- Some extras sit wrong and need another pass at placement.
+- Whether each tool’s grip matches `design/holds.md`.
 
 ## 11. The rig
 
@@ -162,7 +159,7 @@ A tool hangs on the hand point. An extra hangs on one point, or on a left and ri
 
 Each arm is two bones, from the shoulder point to the hand point. The prototype arm capsules are not this rig.
 
-The meshes are smooth enough to read as a solid figure. The prototype meshes are the starting catalog. They are too coarse to ship as they are.
+The meshes are smooth enough to read as a solid figure. The shipped meshes are the locked looks in section 9. The prototype meshes were the starting catalog.
 
 ## 12. Adding a part
 
@@ -182,6 +179,6 @@ The demo page explains what the avatar is and what it does. Before the chat open
 
 A message switches the figure to working. The chat explains that the wait is the working pose. A later line says the page will change while the figure faces away, and that line stays up longer than the first one. Then the chat gives a fixed sample answer that only says this is not a live model, and the figure starts to turn. When its back faces the viewer, the demo stores the next roll and the new page background and reloads. That reload is the applied event. The loaded page already has the new background and the new look, and the figure turns back to face the viewer. Then the figure idles and the input works again. Another message runs the same cycle. No model is called.
 
-Wardrobe has no chat. The figure stands in the center. Body, face, and color are one sheet on the left, at most 30% of the width, with Idle, Working, and Dismissed above them. Clothes, tool, and extra are one sheet on the right, also at most 30%. Neither sheet uses tabs. The choices wrap in a grid. A button under the figure runs one roll, the same roll the demo uses. Choosing a body, a face, a hue swatch, clothes, a tool, or an extra sets that choice. The roll and those choices play the spin, and the new look appears while the back faces the viewer. The hue slider updates the color immediately and does not spin. Idle, Working, and Dismissed set the pose and do not spin. Dragging the figure turns it, and also tips it up or down around its center by at most 70 degrees. The spin plays from that angle.
+Wardrobe has no chat. The figure stands in the center. Its camera starts at the stage view and backs up along that view until the figure fits, including while it is turned. The demo page keeps the stage view. Body, face, and color are one sheet on the left, at most 30% of the width, with Idle, Working, and Dismissed above them. Clothes, tool, and extra are one sheet on the right, also at most 30%. Neither sheet uses tabs. The choices wrap in a grid. A button under the figure runs one roll, the same roll the demo uses. Choosing a body, a face, a hue swatch, clothes, a tool, or an extra sets that choice. The roll and those choices play the spin, and the new look appears while the back faces the viewer. The hue slider updates the color immediately and does not spin. Idle, Working, and Dismissed set the pose and do not spin. Dragging the figure turns it, and also tips it up or down around its center by at most 70 degrees. The spin plays from that angle.
 
 Both pages share the stored roll. The demo keeps that blob in the browser's local storage. Wardrobe does not open or close the chat. Demo remembers whether the chat was open.

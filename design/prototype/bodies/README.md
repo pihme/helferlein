@@ -1,6 +1,6 @@
 # Body shapes
 
-Notes from the visual prototype. The drawing lives in `prototype/helferlein.prototype.html`, in `shapeBody`. These pages record the eight shapes that stayed. Each page has a screenshot and the code that drew it.
+Notes from the visual prototype. The drawing lives in `prototype/helferlein.prototype.html`, in `shapeBody`. These pages record the eight shapes that stayed. Each page has a screenshot and the code that drew it. The shipped look of each shape is the sheet in `design/locked/bodies`.
 
 The silhouette is the whole figure: head, torso, and arms, no legs. Rotationally symmetrical shapes work best.
 

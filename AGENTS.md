@@ -88,11 +88,15 @@ Folders are `bodies`, `clothes`, `tools`, and `extras`, and the slug is the prot
 
 ## Locked designs
 
-`design/locked` is the frozen look, in the same folders and slugs as the mugshots. A sheet there stays byte for byte, and the item it shows stays as that sheet. Every garment is locked. Every body is locked except the lightbulb and the rocket. Among the extras, the bunny ears, the halo, and the small wings are locked. The other extras and the tools stay open. The mugshot writer refuses to write into `design/locked`.
+The PNG sheets in `design/locked` are the reference images, in the same folders and slugs as the mugshots. Every body, garment, tool, and extra has one.
+
+After a geometry change, render a mugshot of each item whose mesh changed and compare it with that item's locked sheet. The work matches the reference when front, side, top, and context still show the same shape. Render with `npm run mugshots` into `design/progress`. When a panel differs, leave the locked sheet as it is and report the difference.
+
+Leave every locked image unchanged during the work. Replace one only when the user explicitly asks to update that reference. The mugshot writer refuses to write into `design/locked`. Copy a finished progress sheet in by hand.
 
 ## Do not invent
 
-- A drawing or a runtime beyond SPEC.md sections 11 and 12. The figure uses Three.js as a peer dependency and no UI framework. Every body publishes the same named points. A new body, clothes, tool, or extra is added on its own, without editing the others. The attribute lists in SPEC.md are ideas. Ship the entries only as far as the prototype notes record them, and add a catalog entry only when asked. Body shapes are in `design/prototype/bodies`. Clothes are in `design/prototype/clothes`. Tools are in `design/prototype/tools`. Product grips are in `design/holds.md`, from how a person holds the object. The pose sketches are shape concept art, not hold references. Do not copy the prototype `HOLDS` angles into the implementation. Extras are in `design/prototype/extras`. The prototype pass is done.
+- A drawing or a runtime beyond SPEC.md sections 11 and 12. The figure uses Three.js as a peer dependency and no UI framework. Every body publishes the same named points. A new body, clothes, tool, or extra is added on its own, without editing the others, and only when asked. The catalog in SPEC.md section 8 is the shipped set. Each look is the sheet in `design/locked` (SPEC.md section 9). Where a sheet and an older note disagree, the sheet wins. The pages in `design/prototype` are the earlier pass. Product grips are in `design/holds.md`, from how a person holds the object. The pose sketches are shape concept art, not hold references. Do not copy the prototype `HOLDS` angles into the implementation. The prototype pass is done.
 - Lightness or chroma numbers for the color roles, or a warm/cool cut in the green band, until those are chosen. The shape of the function is in SPEC.md.
 - A second product name, or a shortened CLI name
 - Host-specific words in README.md or SPEC.md

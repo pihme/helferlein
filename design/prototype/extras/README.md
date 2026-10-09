@@ -1,6 +1,6 @@
 # Extras
 
-Notes from the visual prototype. The drawing lives in `prototype/helferlein.prototype.html`, in `addExtra`. These pages record the extras that stayed. Each page has a screenshot and the code that drew it.
+Notes from the visual prototype. The drawing lives in `prototype/helferlein.prototype.html`, in `addExtra`. These pages record the extras that stayed. Each page has a screenshot and the code that drew it. The shipped look of each extra is the sheet in `design/locked/extras`.
 
 One roll picks one extra. A worn extra uses the accessories color. A grown extra uses the features color. Hats and the crown are worn. Ears, the antenna, the halo, the wings, the antlers, and the propeller are grown. The antenna is drawn as a satellite dish. Nothing here adds a second hue. A darker band or a lighter shade is a lightness shift of that same hue.
 
