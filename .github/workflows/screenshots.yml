@@ -1,0 +1,35 @@
+name: Screenshots
+
+# Renders the README screenshots, the mascot, the landing page and the social preview from the
+# current demo (scripts/screenshots.mjs, Chromium) and uploads them as the artifact "screenshots".
+# Run it by hand from Actions -> Screenshots -> Run workflow; commit the images you want to keep.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [docs/1.0-screenshots]
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/screenshots.mjs screenshots
+      - uses: actions/upload-artifact@v7
+        with:
+          name: screenshots
+          path: screenshots/
+          retention-days: 14
