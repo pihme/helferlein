@@ -40,7 +40,7 @@ jobs:
         run: npx playwright install --with-deps ${{ matrix.browser }}
       - name: Smoke test
         run: npx playwright test --project=${{ matrix.browser }}
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-${{ matrix.browser }}
