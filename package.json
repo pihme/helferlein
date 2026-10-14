@@ -28,12 +28,14 @@
     "typecheck": "tsc -p types/tsconfig.json",
     "test": "node --test",
     "mugshots": "node scripts/mugshots.mjs",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "e2e": "playwright test"
   },
   "peerDependencies": {
     "three": ">=0.170.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "esbuild": "^0.28.2",
     "three": "^0.186.1",
     "typescript": "^7.0.2"
