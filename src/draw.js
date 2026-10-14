@@ -475,15 +475,27 @@ function createDraw(THREE, env = {}) {
         const crown = sockets.headTop[1];
         const y = place.faceY;
         const r = place.faceR;
+        // Step the brim up until the head is no wider than it. A hair of overlap stays.
+        const clearOf = (y, maxR) => {
+          const body = figure.children[0];
+          const tip = sockets.meshTop != null ? sockets.meshTop : meshTop(body);
+          const wide = (dy) => y + dy < tip - 0.004 && radiusAt(body, y + dy, 0.012) > maxR;
+          if (!wide(0)) return 0;
+          let lift = 0.01;
+          while (wide(lift) && lift < 0.55) lift += 0.01;
+          return lift < 0.012 ? 0 : lift;
+        };
         if (name === "Top hat") {
           const side = 0.115 * s;
           const front = 0.155 * s;
           const stretch = front / side;
           const crownH = 0.24 * s;
-          const crown = put(solid(new THREE.CylinderGeometry(side, side, crownH, 32), m), 0, top + crownH * 0.5, 0);
+          const cover = sockets.classic ? 0 : Math.max(0, sockets.meshTop + 0.012 - (top + crownH));
+          const yTop = top + Math.max(clearOf(top + 0.004, side), cover < 0.012 ? 0 : cover);
+          const crown = put(solid(new THREE.CylinderGeometry(side, side, crownH, 32), m), 0, yTop + crownH * 0.5, 0);
           crown.scale.z = stretch;
           const bandH = 0.045 * s;
-          const collar = put(solid(new THREE.CylinderGeometry(side * 1.08, side * 1.08, bandH, 32), band), 0, top + bandH * 0.5, 0);
+          const collar = put(solid(new THREE.CylinderGeometry(side * 1.08, side * 1.08, bandH, 32), band), 0, yTop + bandH * 0.5, 0);
           collar.scale.z = stretch;
           const seg = 56;
           const steps = 5;
@@ -493,7 +505,7 @@ function createDraw(THREE, env = {}) {
           const oz = front + 0.15 * s;
           const curl = 0.04 * s;
           const thick = 0.012 * s;
-          const y0 = top + 0.004;
+          const y0 = yTop + 0.004;
           const cols = seg + 1;
           const rows = steps + 1;
           const brim = new THREE.BufferGeometry();
@@ -547,18 +559,29 @@ function createDraw(THREE, env = {}) {
           const nub = sphere(0.028 * s, band, 12);
           nub.position.set(0, 0.24 * s, 0);
           beret.add(nub);
+          if (!sockets.classic) {
+            const sink = Math.max(0, sockets.meshTop - top - 0.05);
+            const dome = radiusAt(figure.children[0], sockets.meshTop - 0.08, 0.02);
+            const lift = Math.max(sink, (dome - 0.16) * 0.9);
+            if (lift >= 0.012) beret.position.y += lift;
+          }
         } else if (name === "Sombrero") {
-          put(lathe([
+          const brim = [
             [0.16 * s, 0.03 * s], [0.36 * s, 0.008 * s], [0.50 * s, 0.02 * s], [0.58 * s, 0.06 * s],
             [0.64 * s, 0.11 * s], [0.62 * s, 0.14 * s], [0.52 * s, 0.05 * s], [0.32 * s, 0],
             [0.16 * s, 0.012 * s], [0.16 * s, 0.03 * s]
-          ], m), 0, top - 0.10 * s, 0);
-          put(solid(new THREE.CylinderGeometry(0.155 * s, 0.17 * s, 0.18 * s, 20), m), 0, top - 0.01 * s, 0);
-          const dome = put(sphere(0.155 * s, m, 22), 0, top + 0.08 * s, 0);
+          ];
+          const brimBase = top - 0.10 * s;
+          const hole = 0.16 * s;
+          const lift = Math.max(clearOf(brimBase + 0.03 * s, hole), clearOf(brimBase + 0.012 * s, hole), clearOf(brimBase, 0.32 * s));
+          put(lathe(brim, m), 0, brimBase + lift, 0);
+          put(solid(new THREE.CylinderGeometry(0.155 * s, 0.17 * s, 0.18 * s, 20), m), 0, top - 0.01 * s + lift, 0);
+          const dome = put(sphere(0.155 * s, m, 22), 0, top + 0.08 * s + lift, 0);
           dome.scale.y = 0.72;
-          put(solid(new THREE.CylinderGeometry(0.15 * s, 0.17 * s, 0.045 * s, 20), band), 0, top - 0.04 * s, 0);
+          put(solid(new THREE.CylinderGeometry(0.15 * s, 0.17 * s, 0.045 * s, 20), band), 0, top - 0.04 * s + lift, 0);
         } else if (name === "Pointed hat") {
-          put(solid(new THREE.CylinderGeometry(0.34 * s, 0.34 * s, 0.03, 24), m), 0, top - 0.01, 0);
+          const yTop = sockets.classic ? top : top + Math.max(0, sockets.meshTop - (top + 0.005));
+          put(solid(new THREE.CylinderGeometry(0.34 * s, 0.34 * s, 0.03, 24), m), 0, yTop - 0.01, 0);
           const tipY = 0.48 * s;
           const bend = 0.22 * s;
           const baseR = 0.16 * s;
@@ -579,7 +602,7 @@ function createDraw(THREE, env = {}) {
             for (let i = 0; i < seg; i++) {
               const a = (i / seg) * Math.PI * 2;
               const p = c.clone().addScaledVector(side, Math.cos(a) * rad).addScaledVector(bin, Math.sin(a) * rad);
-              positions.push(p.x, p.y + top + 0.005, p.z);
+              positions.push(p.x, p.y + yTop + 0.005, p.z);
             }
           }
           const indices = [];
@@ -597,8 +620,8 @@ function createDraw(THREE, env = {}) {
           cone.computeVertexNormals();
           g.add(solid(cone, m));
           const tip = centerAt(1);
-          put(sphere(0.018 * s, band, 8), tip.x, tip.y + top + 0.012, tip.z);
-          put(solid(new THREE.CylinderGeometry(0.175 * s, 0.175 * s, 0.028 * s, 24), band), 0, top + 0.016, 0);
+          put(sphere(0.018 * s, band, 8), tip.x, tip.y + yTop + 0.012, tip.z);
+          put(solid(new THREE.CylinderGeometry(0.175 * s, 0.175 * s, 0.028 * s, 24), band), 0, yTop + 0.016, 0);
         } else if (name === "Chef's hat") {
           const bandH = 0.11 * s;
           put(solid(new THREE.CylinderGeometry(0.20 * s, 0.205 * s, bandH, 28), band), 0, top + bandH * 0.15, 0);
@@ -608,7 +631,9 @@ function createDraw(THREE, env = {}) {
           ], m), 0, top + bandH * 0.65, 0);
         } else if (name === "Crown") {
           const metal = paint(look, "accessories", { metalness: 0.72, roughness: 0.28 });
-          const seat = top - 0.20 * s;
+          let seat = top - 0.20 * s;
+          const lift = clearOf(seat - 0.035 * s, 0.36 * s);
+          if (lift > 0.035) seat += lift;
           put(solid(new THREE.CylinderGeometry(0.36 * s, 0.39 * s, 0.07 * s, 24, 1, true), metal), 0, seat, 0);
           for (let i = 0; i < 5; i++) {
             const a = (i / 5) * Math.PI * 2;
@@ -770,8 +795,11 @@ function createDraw(THREE, env = {}) {
           const antenna = new THREE.Group();
           antenna.name = "antenna";
           // The bowl sits on the foot. The foot stays put while the named group yaws.
+          // A wide dome needs the bowl above the crown. A point keeps the short neck.
           const bowlOnFoot = footY + footH * 0.5 + 0.004 - 0.045 * s;
-          antenna.position.set(0, sockets.classic ? footY + 0.09 * s : bowlOnFoot, 0);
+          const dome = sockets.classic ? 0 : radiusAt(figure.children[0], sockets.meshTop - 0.08, 0.02);
+          const bowlY = sockets.classic ? footY + 0.09 * s : bowlOnFoot + (dome > 0.17 ? 0.09 : 0);
+          antenna.position.set(0, bowlY, 0);
           g.add(antenna);
           const neckBottom = footY + footH * 0.5 - antenna.position.y - 0.004 * s;
           const neckTop = 0.06 * s;
