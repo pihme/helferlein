@@ -20,4 +20,4 @@ Looking down the tip, the brush is a circle. The dark center is the point, and t
 
 ## Context
 
-The right hand holds the handle low, on the screen-right of the figure. The tip points down.
+The right forearm reaches forward. The fist closes on the handle just short of the ferrule, and the bristles point down and a little forward.

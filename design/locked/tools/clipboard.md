@@ -20,4 +20,4 @@ Looking down, the board is a long thin bar. The clip is a shorter block across t
 
 ## Context
 
-The right hand holds the lower edge, on the screen-right of the figure. The board stands upright, the page faces the viewer, and the clip stays at the top.
+The right forearm reaches forward. The fist holds the lower edge, the board stands upright, and the page faces the viewer.

@@ -20,4 +20,4 @@ Looking along the handle, the wrench is a long flat bar. The open jaw is the for
 
 ## Context
 
-The right arm reaches out to the screen-right. The fist is on the handle, and the jaw is at the far end.
+The forearm lies level, out to the screen-right, and the elbow bends back. The wrench stands up from the fist, and the open jaw faces the viewer.

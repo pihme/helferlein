@@ -20,4 +20,4 @@ Looking along the handle, the rim is a thick bar and the lens is a flat oval thr
 
 ## Context
 
-The right hand holds the handle up, on the screen-right of the figure. The lens stands beside the head.
+The right hand holds the handle beside the visor. The lens stands up next to the head.

@@ -20,4 +20,4 @@ Looking along the blade, the saw is a long rounded bar. A dark gap in that bar i
 
 ## Context
 
-The right fist passes through the ring, on the screen-right of the figure. The blade points out, and the teeth face down.
+The fist holds the outer rim of the ring. The blade points forward and in, in front of the body, and the teeth face down.

@@ -20,4 +20,4 @@ The open rim is a ring. The handle leaves one side and the spout the other, endi
 
 ## Context
 
-The right hand holds the side handle, on the screen-right of the figure. The can hangs out beside the body, and the spout points outward.
+The right forearm reaches forward. The can stands nearly upright on the side handle, and the spout heads the way the forearm does.

@@ -20,4 +20,4 @@ Looking along the rod, the star is a wide flat burst. The rod is the dark center
 
 ## Context
 
-The right arm is raised on the screen-right of the figure. The hand holds the rod, and the star points out.
+The right arm is raised. The wand stands up along the forearm, and the star faces the viewer.
