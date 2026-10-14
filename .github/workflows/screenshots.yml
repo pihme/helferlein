@@ -6,8 +6,6 @@ name: Screenshots
 
 on:
   workflow_dispatch:
-  push:
-    branches: [docs/1.0-screenshots]
 
 permissions:
   contents: read
