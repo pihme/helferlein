@@ -1260,15 +1260,16 @@ function createDraw(THREE, env = {}) {
           can.scale.setScalar(canScale);
           g.add(can);
           const grip = new THREE.Vector3(-0.155, 0.34, 0).multiplyScalar(canScale);
-          // The rose is the working end. Tipping aims it down so the can pours.
           const spoutBase = new THREE.Vector3(0.08, 0.36, 0).multiplyScalar(canScale);
           const roseAt = new THREE.Vector3(0.08, 0.36, 0).addScaledVector(spoutDir, 0.16).multiplyScalar(canScale);
-          g.userData.localAim = [spoutDir.x, spoutDir.y, spoutDir.z];
-          // The opening. Rolled to the side so the can reads in profile, not as a disk.
-          g.userData.localTwist = [0, 1, 0];
+          // The body stands up. The spout side rolls to follow the forearm.
+          g.userData.localAim = [0, 1, 0];
+          g.userData.localTwist = [1, 0, 0];
           g.userData.grip = [grip.x, grip.y, grip.z];
-          g.userData.aimFrom = [spoutBase.x, spoutBase.y, spoutBase.z];
-          g.userData.aimTo = [roseAt.x, roseAt.y, roseAt.z];
+          g.userData.aimFrom = [0, 0.24 * canScale, 0];
+          g.userData.aimTo = [0, 0.44 * canScale, 0];
+          g.userData.spoutFrom = [spoutBase.x, spoutBase.y, spoutBase.z];
+          g.userData.spoutTo = [roseAt.x, roseAt.y, roseAt.z];
           g.userData.bodyAt = [0, 0.34 * canScale, 0];
           g.userData.crownAt = [grip.x, grip.y, grip.z];
         } else if (name === "Telescope") {
@@ -1436,17 +1437,22 @@ function createDraw(THREE, env = {}) {
           });
         }
         const marked = {
-          "Wrench": { grip: [0, 0.08, 0], from: [0, 0.16, 0], to: [0, 0.42, 0] },
-          // Back on the shaft, so the pencil shows past the fist and the eraser stays in the hand.
+          "Wrench": { grip: [0, 0.08, 0], from: [0, 0.16, 0], to: [0, 0.42, 0], faceFrom: [0, 0.36, 0], faceTo: [0, 0.36, 1] },
+          // Upright, fist near the eraser, tip above the hand.
           "Pencil": { grip: [0, 0.12, 0], from: [0, 0.2, 0], to: [0, 0.47, 0] },
           "Magnifying glass": { grip: [0, 0.08, 0], from: [0, 0.15, 0], to: [0, 0.42, 0] },
-          "Brush": { grip: [0, 0.04, 0], from: [0, 0.14, 0], to: [0, 0.46, 0] },
+          // Just handle-side of the ferrule, so the bristles start past the fist.
+          "Brush": { grip: [0, 0.22, 0], from: [0, 0.28, 0], to: [0, 0.46, 0] },
           "Clipboard": { grip: [0, 0.06, 0], from: [0, 0.08, 0], to: [0, 0.40, 0], faceFrom: [0, 0.22, 0], faceTo: [0, 0.22, 1] },
-          "Telescope": { grip: [0, 0.2625, 0], from: [0, 0.07, 0], to: [0, 0.6125, 0] },
-          "Hammer": { grip: [0, 0.1, 0], from: [0, 0.16, 0], to: [0, 0.46, 0], faceFrom: [0, 0.46, 0], faceTo: [0.13, 0.46, 0] },
-          "Saw": { grip: [0, 0.02, 0], from: [0, 0.02, 0], to: [0, 0.55, 0], faceFrom: [0, 0.40, 0], faceTo: [0.08, 0.40, 0] },
-          "Fairy wand": { grip: [0, 0.10, 0], from: [0, 0.10, 0], to: [0, 0.52, 0], faceFrom: [0, 0.52, 0], faceTo: [0, 0.62, 0] },
-          "Scissors": { grip: [0, 0.06, 0], from: [0, 0.06, 0], to: [0, 0.36, 0], faceFrom: [-0.05, 0.07, 0], faceTo: [0.05, 0.07, 0] },
+          // The fist is at the eyepiece, so the barrel runs out instead of back into the head.
+          "Telescope": { grip: [0, 0.09, 0], from: [0, 0.07, 0], to: [0, 0.6125, 0] },
+          // A fifth of the handle up from the butt. The head is the far end.
+          "Hammer": { grip: [0, 0.07, 0], from: [0, 0.16, 0], to: [0, 0.46, 0], faceFrom: [0, 0.46, 0], faceTo: [0.13, 0.46, 0] },
+          // The outer rim of the ring, the side away from the blade.
+          "Saw": { grip: [0, -0.16, 0], from: [0, 0.13, 0], to: [0, 0.62, 0], faceFrom: [0, 0.40, 0], faceTo: [0.08, 0.40, 0] },
+          "Fairy wand": { grip: [0, 0.10, 0], from: [0, 0.10, 0], to: [0, 0.52, 0], faceFrom: [0, 0.52, 0], faceTo: [0, 0.52, 0.1] },
+          // Behind the rings, so the handles sit just past the fist along the forearm.
+          "Scissors": { grip: [0, -0.04, 0], from: [0, 0.08, 0], to: [0, 0.36, 0], faceFrom: [-0.05, 0.07, 0], faceTo: [0.05, 0.07, 0] },
           "Tongs": { grip: [0, 0.03, 0], from: [0, 0.04, 0], to: [0, 0.30, 0] }
         }[name];
         if (marked) {
@@ -1471,21 +1477,23 @@ function createDraw(THREE, env = {}) {
         forward: { target: [0.42, -0.02, 0.22], pole: [1.05, 0.05, -0.25] },
         // Forward, and low enough that the forearm slopes down at the work.
         over: { target: [0.30, -0.22, 0.26], pole: [1.05, 0.2, -0.2] },
-        raised: { target: [0.1, 0.34, 0.26], pole: [0.7, -0.6, 0.1] }
+        raised: { target: [0.22, 0.28, 0.22], pole: [0.8, -0.4, 0.1] },
+        // Out and forward, so the blade crosses in front of the body.
+        across: { target: [0.30, 0.02, 0.34], pole: [0.55, 0.1, 0.25] }
       };
       const HOLDS = {
-        "Wrench": { arm: "forward", along: "forearm", twist: RIGHT },
-        "Pencil": { arm: "over", along: "forearm", twist: RIGHT },
+        "Wrench": { arm: "raised", along: "forearm", twist: RIGHT },
+        "Pencil": { arm: "raised", along: "forearm", twist: RIGHT },
         "Magnifying glass": { at: "glass", aim: UP, twist: RIGHT },
-        "Brush": { arm: "forward", aim: DOWN, twist: RIGHT },
+        "Brush": { arm: "forward", aim: [0, -0.94, 0.34], twist: RIGHT },
         "Clipboard": { arm: "forward", aim: UP, twist: RIGHT },
-        "Watering can": { arm: "forward", aim: [0.15, -0.97, 0.18], twist: RIGHT },
-        "Telescope": { at: "scope", aim: [0.88, 0.06, 0.47], twist: UP },
-        "Hammer": { arm: "forward", along: "forearm", twist: DOWN },
-        "Saw": { arm: "forward", along: "forearm", twist: DOWN },
-        "Fairy wand": { arm: "raised", aim: [0.84, 0.2, 0.5], twist: [-1, 0, 0] },
+        "Watering can": { arm: "forward", aim: [0.12, 0.98, 0.16], twist: "forearm" },
+        "Telescope": { at: "scope", aim: [0.72, -0.06, 0.69], twist: UP },
+        "Hammer": { arm: "raised", along: "forearm", twist: RIGHT },
+        "Saw": { arm: "across", aim: [-0.35, 0.02, 0.94], twist: DOWN },
+        "Fairy wand": { arm: "raised", along: "forearm", twist: RIGHT },
         "Scissors": { arm: "forward", along: "forearm", twist: UP },
-        "Tongs": { arm: "forward", aim: DOWN, twist: RIGHT }
+        "Tongs": { arm: "forward", aim: [0.4, -0.74, 0.54], twist: RIGHT }
       };
 
       const fromDown = new THREE.Vector3(0, -1, 0);
@@ -1531,13 +1539,22 @@ function createDraw(THREE, env = {}) {
         if (pose.at === "glass" || pose.at === "scope") {
           const r = place.faceR;
           const eye = new THREE.Vector3(r * 0.34, place.faceY, place.faceZ + r * 0.26);
+          // scope: beside the head and a little forward, so the barrel leaves the visor instead of entering it.
           const hand = pose.at === "glass"
             ? new THREE.Vector3(eye.x + Math.max(0.22, r * 0.7), eye.y - 0.36, eye.z + 0.02)
-            : new THREE.Vector3(eye.x + 0.32, eye.y - 0.14, Math.max(0.16, eye.z - 0.22));
+            : new THREE.Vector3(eye.x + Math.max(0.2, r * 0.5), eye.y - 0.24, eye.z - 0.16);
           const target = hand.sub(new THREE.Vector3(shoulder[0], shoulder[1], shoulder[2]));
           const max = 0.46;
-          if (target.length() > max) target.multiplyScalar(max / target.length());
-          return { target, pole: [0.7, -0.55, 0.1] };
+          if (pose.at === "scope" && target.x < 0.04) target.x = 0.04;
+          if (target.length() > max) {
+            if (pose.at === "scope") {
+              const spare = Math.sqrt(Math.max(0.01, max * max - target.x * target.x));
+              const yz = Math.hypot(target.y, target.z) || 1;
+              target.y *= spare / yz;
+              target.z *= spare / yz;
+            } else target.multiplyScalar(max / target.length());
+          }
+          return { target, pole: pose.at === "scope" ? [0.9, -0.2, 0.15] : [0.7, -0.55, 0.1] };
         }
         const shape = ARM[pose.arm];
         return {
@@ -1612,18 +1629,19 @@ function createDraw(THREE, env = {}) {
       function aimHeldTool(tool, elbow, figure, pose, handY) {
         figure.updateMatrixWorld(true);
         figure.getWorldQuaternion(holdFigure);
-        if (pose.along === "forearm") {
+        if (pose.along === "forearm" || pose.twist === "forearm") {
           holdHand.set(0, handY, 0);
           elbow.localToWorld(holdHand);
           figure.worldToLocal(holdHand);
           elbow.getWorldPosition(holdElbowPt);
           figure.worldToLocal(holdElbowPt);
-          holdAim.copy(holdHand).sub(holdElbowPt);
-        } else {
-          holdAim.set(pose.aim[0], pose.aim[1], pose.aim[2]);
+          holdTwist.copy(holdHand).sub(holdElbowPt);
         }
+        if (pose.along === "forearm") holdAim.copy(holdTwist);
+        else holdAim.set(pose.aim[0], pose.aim[1], pose.aim[2]);
         holdAim.normalize().applyQuaternion(holdFigure);
-        holdTwist.set(pose.twist[0], pose.twist[1], pose.twist[2]).applyQuaternion(holdFigure);
+        if (pose.twist === "forearm") holdTwist.normalize().applyQuaternion(holdFigure);
+        else holdTwist.set(pose.twist[0], pose.twist[1], pose.twist[2]).applyQuaternion(holdFigure);
         const srcA = tool.userData.localAim || [0, 1, 0];
         const srcT = tool.userData.localTwist || [1, 0, 0];
         holdSrcA.set(srcA[0], srcA[1], srcA[2]).normalize();
