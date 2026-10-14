@@ -224,17 +224,17 @@ test("two bones reach the hand and the working arm lifts", () => {
 test("each tool sits in the right fist and points the way the hold note says", () => {
   const expectHold = {
     "Wrench": { along: "forearm", reach: "forward" },
-    "Pencil": { along: "forearm", reach: "down" },
-    "Magnifying glass": { aim: [0, 1, 0], reach: "forward" },
-    "Brush": { aim: [0, -1, 0], reach: "down" },
+    "Pencil": { along: "forearm", reach: "over", show: 0.28 },
+    "Magnifying glass": { aim: [0, 1, 0], reach: "eye", near: 0.45 },
+    "Brush": { aim: [0, -1, 0], reach: "forward" },
     "Clipboard": { aim: [0, 1, 0], face: [0, 0, 1], reach: "forward" },
-    "Watering can": { aim: [0, -1, 0], reach: "forward", beside: 0.12 },
-    "Telescope": { aim: [0.78, 0.02, 0.62], min: 0.95, reach: "raised" },
+    "Watering can": { aim: [0, -1, 0], reach: "forward", pours: true },
+    "Telescope": { aim: [0.88, 0.06, 0.47], min: 0.9, reach: "cheek", near: 0.55 },
     "Hammer": { along: "forearm", face: [0, -1, 0], reach: "forward" },
     "Saw": { along: "forearm", face: [0, -1, 0], reach: "forward" },
     "Fairy wand": { aim: [0.84, 0.2, 0.5], min: 0.95, face: [0.84, 0.2, 0.5], reach: "raised" },
     "Scissors": { along: "forearm", face: [0, 1, 0], reach: "forward" },
-    "Tongs": { aim: [0, -1, 0], reach: "down" }
+    "Tongs": { aim: [0, -1, 0], reach: "forward" }
   };
   const dirBetween = (fig, tool, from, to) => {
     const a = new THREE.Vector3(...from);
@@ -301,31 +301,46 @@ test("each tool sits in the right fist and points the way the hold note says", (
         fig.worldToLocal(crown);
         assert.ok(crown.y > body.y + spec.crownAbove, `${shape} can hangs below the fist`);
       }
-      if (spec.beside) {
+      if (spec.pours) {
+        const rose = new THREE.Vector3(...tool.userData.aimTo);
         const body = new THREE.Vector3(...tool.userData.bodyAt);
-        const crown = new THREE.Vector3(...tool.userData.crownAt);
+        tool.localToWorld(rose);
         tool.localToWorld(body);
-        tool.localToWorld(crown);
+        fig.worldToLocal(rose);
         fig.worldToLocal(body);
-        fig.worldToLocal(crown);
-        assert.ok(crown.distanceTo(body) > spec.beside, `${shape} fist is on the side of the can`);
+        assert.ok(rose.y < body.y - 0.05, `${shape} spout is below the can`);
+        assert.ok(rose.y < hand.y, `${shape} spout is below the fist`);
       }
       const shoulder = fig.userData.sockets.shoulderRight;
       const socket = fig.userData.sockets.handRight;
       if (spec.reach === "forward") {
         assert.ok(socket[2] > shoulder[2] + 0.2, `${shape} ${name} reaches forward`);
         assert.ok(socket[1] > shoulder[1] - 0.15, `${shape} ${name} does not hang`);
-      } else if (spec.reach === "down") {
-        assert.ok(socket[1] < shoulder[1] - 0.2, `${shape} ${name} hand is down`);
-        assert.ok(socket[2] > shoulder[2] + 0.08, `${shape} ${name} still reaches`);
+      } else if (spec.reach === "over") {
+        assert.ok(socket[2] > shoulder[2] + 0.2, `${shape} ${name} reaches forward`);
+        assert.ok(socket[0] > shoulder[0] + 0.15, `${shape} ${name} reaches out`);
+        assert.ok(socket[1] < shoulder[1] - 0.1, `${shape} ${name} hand drops toward the work`);
+        assert.ok(socket[1] > shoulder[1] - 0.34, `${shape} ${name} does not hang`);
+        assert.ok(forearm.y < -0.25 && forearm.y > -0.7, `${shape} ${name} forearm slopes down ${forearm.y}`);
+      } else if (spec.reach === "eye" || spec.reach === "cheek") {
+        const spot = fig.userData.place;
+        const eye = new THREE.Vector3(spot.faceR * 0.34, spot.faceY, spot.faceZ + spot.faceR * 0.26);
+        const mark = new THREE.Vector3(...(spec.reach === "eye" ? tool.userData.aimTo : tool.userData.aimFrom));
+        tool.localToWorld(mark);
+        fig.worldToLocal(mark);
+        assert.ok(mark.distanceTo(eye) < spec.near, `${shape} ${name} is by the eye ${mark.distanceTo(eye).toFixed(2)}`);
+        if (spec.reach === "cheek") assert.ok(socket[1] > shoulder[1] - 0.02, `${shape} ${name} hand is raised`);
       } else {
         assert.ok(socket[1] > shoulder[1] + 0.2, `${shape} ${name} arm is raised`);
       }
       assert.ok(socket[0] > shoulder[0] - 0.2, `${shape} ${name} hand stays on the right`);
       assert.ok(fig.userData.sockets.handLeft[1] < fig.userData.sockets.shoulderLeft[1] - 0.25, `${shape} ${name} left arm hangs`);
-      if (spec.reach === "down" && spec.along === "forearm") {
-        assert.ok(forearm.y < -0.5, `${shape} ${name} forearm points down`);
-        assert.ok(forearm.z > 0.25, `${shape} ${name} forearm also reaches`);
+      if (spec.show) {
+        const end = new THREE.Vector3(...tool.userData.aimTo);
+        tool.localToWorld(end);
+        fig.worldToLocal(end);
+        const past = end.sub(hand).dot(aim);
+        assert.ok(past > spec.show, `${shape} ${name} shows past the fist ${past.toFixed(2)}`);
       }
     }
   }

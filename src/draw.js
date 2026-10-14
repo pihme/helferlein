@@ -1260,13 +1260,15 @@ function createDraw(THREE, env = {}) {
           can.scale.setScalar(canScale);
           g.add(can);
           const grip = new THREE.Vector3(-0.155, 0.34, 0).multiplyScalar(canScale);
-          const from = new THREE.Vector3(0, 0.34, 0).multiplyScalar(canScale);
-          const to = new THREE.Vector3(0, 0.24, 0).multiplyScalar(canScale);
-          g.userData.localAim = [0, -1, 0];
-          g.userData.localTwist = [1, 0, 0];
+          // The rose is the working end. Tipping aims it down so the can pours.
+          const spoutBase = new THREE.Vector3(0.08, 0.36, 0).multiplyScalar(canScale);
+          const roseAt = new THREE.Vector3(0.08, 0.36, 0).addScaledVector(spoutDir, 0.16).multiplyScalar(canScale);
+          g.userData.localAim = [spoutDir.x, spoutDir.y, spoutDir.z];
+          // The opening. Rolled to the side so the can reads in profile, not as a disk.
+          g.userData.localTwist = [0, 1, 0];
           g.userData.grip = [grip.x, grip.y, grip.z];
-          g.userData.aimFrom = [from.x, from.y, from.z];
-          g.userData.aimTo = [to.x, to.y, to.z];
+          g.userData.aimFrom = [spoutBase.x, spoutBase.y, spoutBase.z];
+          g.userData.aimTo = [roseAt.x, roseAt.y, roseAt.z];
           g.userData.bodyAt = [0, 0.34 * canScale, 0];
           g.userData.crownAt = [grip.x, grip.y, grip.z];
         } else if (name === "Telescope") {
@@ -1435,7 +1437,8 @@ function createDraw(THREE, env = {}) {
         }
         const marked = {
           "Wrench": { grip: [0, 0.08, 0], from: [0, 0.16, 0], to: [0, 0.42, 0] },
-          "Pencil": { grip: [0, 0.1, 0], from: [0, 0.2, 0], to: [0, 0.47, 0] },
+          // Back on the shaft, so the pencil shows past the fist and the eraser stays in the hand.
+          "Pencil": { grip: [0, 0.12, 0], from: [0, 0.2, 0], to: [0, 0.47, 0] },
           "Magnifying glass": { grip: [0, 0.08, 0], from: [0, 0.15, 0], to: [0, 0.42, 0] },
           "Brush": { grip: [0, 0.04, 0], from: [0, 0.14, 0], to: [0, 0.46, 0] },
           "Clipboard": { grip: [0, 0.06, 0], from: [0, 0.08, 0], to: [0, 0.40, 0], faceFrom: [0, 0.22, 0], faceTo: [0, 0.22, 1] },
@@ -1466,22 +1469,23 @@ function createDraw(THREE, env = {}) {
       const RIGHT = [1, 0, 0];
       const ARM = {
         forward: { target: [0.42, -0.02, 0.22], pole: [1.05, 0.05, -0.25] },
-        down: { target: [0.2, -0.36, 0.24], pole: [1.2, 0.15, -0.15] },
+        // Forward, and low enough that the forearm slopes down at the work.
+        over: { target: [0.30, -0.22, 0.26], pole: [1.05, 0.2, -0.2] },
         raised: { target: [0.1, 0.34, 0.26], pole: [0.7, -0.6, 0.1] }
       };
       const HOLDS = {
         "Wrench": { arm: "forward", along: "forearm", twist: RIGHT },
-        "Pencil": { arm: "down", along: "forearm", twist: RIGHT },
-        "Magnifying glass": { arm: "forward", aim: UP, twist: RIGHT },
-        "Brush": { arm: "down", aim: DOWN, twist: RIGHT },
+        "Pencil": { arm: "over", along: "forearm", twist: RIGHT },
+        "Magnifying glass": { at: "glass", aim: UP, twist: RIGHT },
+        "Brush": { arm: "forward", aim: DOWN, twist: RIGHT },
         "Clipboard": { arm: "forward", aim: UP, twist: RIGHT },
-        "Watering can": { arm: "forward", aim: DOWN, twist: RIGHT },
-        "Telescope": { arm: "raised", aim: [0.78, 0.02, 0.62], twist: UP },
+        "Watering can": { arm: "forward", aim: [0.15, -0.97, 0.18], twist: RIGHT },
+        "Telescope": { at: "scope", aim: [0.88, 0.06, 0.47], twist: UP },
         "Hammer": { arm: "forward", along: "forearm", twist: DOWN },
         "Saw": { arm: "forward", along: "forearm", twist: DOWN },
         "Fairy wand": { arm: "raised", aim: [0.84, 0.2, 0.5], twist: [-1, 0, 0] },
         "Scissors": { arm: "forward", along: "forearm", twist: UP },
-        "Tongs": { arm: "down", aim: DOWN, twist: RIGHT }
+        "Tongs": { arm: "forward", aim: DOWN, twist: RIGHT }
       };
 
       const fromDown = new THREE.Vector3(0, -1, 0);
@@ -1521,6 +1525,26 @@ function createDraw(THREE, env = {}) {
         lowerDir.applyQuaternion(arm.quaternion.clone().invert());
         elbow.quaternion.setFromUnitVectors(fromDown, lowerDir);
       }
+      // glass: the lens sits beside this body's eye. scope: the barrel rises toward the eye
+      // and stops where the arm can reach. A tall head keeps the eyepiece at the cheek.
+      function holdTarget(pose, place, shoulder) {
+        if (pose.at === "glass" || pose.at === "scope") {
+          const r = place.faceR;
+          const eye = new THREE.Vector3(r * 0.34, place.faceY, place.faceZ + r * 0.26);
+          const hand = pose.at === "glass"
+            ? new THREE.Vector3(eye.x + Math.max(0.22, r * 0.7), eye.y - 0.36, eye.z + 0.02)
+            : new THREE.Vector3(eye.x + 0.32, eye.y - 0.14, Math.max(0.16, eye.z - 0.22));
+          const target = hand.sub(new THREE.Vector3(shoulder[0], shoulder[1], shoulder[2]));
+          const max = 0.46;
+          if (target.length() > max) target.multiplyScalar(max / target.length());
+          return { target, pole: [0.7, -0.55, 0.1] };
+        }
+        const shape = ARM[pose.arm];
+        return {
+          target: new THREE.Vector3(shape.target[0], shape.target[1], shape.target[2]),
+          pole: shape.pole
+        };
+      }
       function addArms(g, look, place, activity, sockets) {
         const material = paint(look, "body");
         const pose = HOLDS[look.tool];
@@ -1548,9 +1572,9 @@ function createDraw(THREE, env = {}) {
           const shoulder = side < 0 ? sockets.shoulderLeft : sockets.shoulderRight;
           arm.position.set(shoulder[0], shoulder[1], shoulder[2]);
           if (held) {
-            const shape = ARM[pose.arm];
-            const target = new THREE.Vector3(shape.target[0], shape.target[1], shape.target[2]);
-            const bendToward = new THREE.Vector3(side * shape.pole[0], shape.pole[1], shape.pole[2]);
+            const reach = holdTarget(pose, place, shoulder);
+            const target = reach.target;
+            const bendToward = new THREE.Vector3(side * reach.pole[0], reach.pole[1], reach.pole[2]);
             poseBones(arm, elbow, upperLen, lowerLen, target, bendToward);
             sockets.handRight = [
               shoulder[0] + target.x,
