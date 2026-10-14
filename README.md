@@ -30,7 +30,7 @@ The demo page (chat open, the figure above it) and the wardrobe, from `demo/`:
 
 <p>
   <img src="docs/images/demo.png" alt="Demo page: a peanut-shaped figure in a striped shirt with bunny ears floats above a chat window with a sample reply" width="49%">
-  <img src="docs/images/wardrobe.png" alt="Wardrobe page: a lightbulb-shaped figure in a suit with a propeller holds a magnifying glass, between the body, face and color choices on the left and the clothes and tool choices on the right" width="49%">
+  <img src="docs/images/wardrobe.png" alt="Wardrobe page: a lightbulb-shaped figure with a propeller holds a magnifying glass, suit selected, between the body, face and color choices on the left and the clothes and tool choices on the right" width="49%">
 </p>
 
 ## Try it
@@ -60,7 +60,7 @@ Two builds, the same API:
 | `dist/helferlein.min.js` | Bundled (tree-shaken, minified) | A plain `<script>` tag; it defines `window.Helferlein` |
 | `dist/helferlein.js` | Not included: imports `three`, a peer dependency (`>=0.170.0`) | `import { mount } from "helferlein"` with a bundler or an import map |
 
-Helferlein is **not on npm**. Each [GitHub Release](https://github.com/pihme/helferlein/releases) attaches `helferlein.min.js`, `helferlein.js` and the package file `helferlein-X.Y.Z.tgz`. After the repository is public, the website also serves the build of `main` at `https://pihme.github.io/helferlein/dist/helferlein.min.js`; for a fixed version, use a release file.
+Helferlein is **not on npm**. Each [GitHub Release](https://github.com/pihme/helferlein/releases) attaches `helferlein.min.js`, `helferlein.js` and the package file `helferlein-X.Y.Z.tgz`. The website also serves the build of `main` at `https://pihme.github.io/helferlein/dist/helferlein.min.js`; for a fixed version, use a release file.
 
 ### Script tag
 
@@ -171,7 +171,7 @@ npm test            # node --test
 
 | File | Budget raw | Budget gzip |
 | --- | --- | --- |
-| `dist/helferlein.js` | 92,000 B | 23,000 B |
+| `dist/helferlein.js` | 116,000 B | 29,000 B |
 | `dist/helferlein.min.js` | 640,000 B | 165,000 B |
 
 Most of `helferlein.min.js` is the three.js WebGL renderer, which tree-shaking cannot drop. The tests run offline in Node with Three.js and a stubbed canvas: the roll rules, the blob validation, the state machine, the catalog, the demo store, the figure built against Three.js, the reduced-motion and no-WebGL paths of `mount`, and that `types/index.d.ts` matches the code. CI runs them on Node.js 22 and 24, and once more against the lowest three.js in the peer range.
