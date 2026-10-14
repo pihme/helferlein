@@ -1,6 +1,6 @@
 # Helferlein
 
-An animated 3D avatar that a page can use as a visible helper. Status: implemented. The figure is in `src/`, the included demo (section 13) in `demo/`, and the tests in `test/`. What is still open is in section 10.
+An animated 3D avatar that a page can use as a visible helper. Status: implemented. The figure is in `src/`, the included demo (section 12) in `demo/`, and the tests in `test/`.
 
 ## 1. Name
 
@@ -118,7 +118,7 @@ Rules the function must keep:
 - A neutral shell is the same function with body, clothes, and accessories chroma near zero. The features keep the accent hue.
 - After the colors are computed, the face is darker than the body and the features are lighter than the face. If a hue fails that, nudge its lightness and compute again.
 
-**Body shape.** Head, torso, and arms. No legs. The silhouette is the whole figure. Rotationally symmetrical shapes work best. The arms are the two-bone rig in section 11. The prototype arm capsules are not that rig.
+**Body shape.** Head, torso, and arms. No legs. The silhouette is the whole figure. Rotationally symmetrical shapes work best. The arms are the two-bone rig in section 10. The prototype arm capsules are not that rig.
 
 - Android: tall head, small torso
 - Peanut: two rounded lobes, pinched in the middle
@@ -143,14 +143,9 @@ Every body, garment, tool, and extra in section 8 has a finished look. The sheet
 
 `design/prototype/bodies`, `design/prototype/clothes`, `design/prototype/tools`, and `design/prototype/extras` record the earlier pass, with their screenshots and the code that drew them.
 
-The color rules in section 8 are rules. The lightness and chroma numbers, and the warm/cool cut in the green band, are still open. Each tool’s grip is locked. The context panel of its sheet in `design/locked/tools` is that grip, and `design/holds.md` records it.
+The color rules in section 8 are rules. Each tool’s grip is locked. The context panel of its sheet in `design/locked/tools` is that grip, and `design/holds.md` records it.
 
-## 10. Open
-
-- The lightness and chroma numbers for each color role.
-- Where the warm/cool cut sits in the green band.
-
-## 11. The rig
+## 10. The rig
 
 Every body publishes the same named points, in that body's own proportions: the top of the head, the two ear hinges, the back, the two shoulders, and the two hands.
 
@@ -160,15 +155,15 @@ Each arm is two bones, from the shoulder point to the hand point. The prototype 
 
 The meshes are smooth enough to read as a solid figure. The shipped meshes are the locked looks in section 9. The prototype meshes were the starting catalog.
 
-## 12. Adding a part
+## 11. Adding a part
 
 A new body, a new set of clothes, a new tool, or a new extra can be added without changing the others.
 
-A body supplies its mesh and the points in section 11. Clothes supply a drawing on the body. A tool supplies its mesh, the place the fist closes, and which way the working end points. An extra supplies its mesh and which point it hangs on. The shipped set is the catalog in section 8.
+A body supplies its mesh and the points in section 10. Clothes supply a drawing on the body. A tool supplies its mesh, the place the fist closes, and which way the working end points. An extra supplies its mesh and which point it hangs on. The shipped set is the catalog in section 8.
 
 The figure is what a page embeds. It is one library with Three.js as a peer dependency, and no UI framework. It ships as an ES module that imports `three`, and as one script-tag file with Three.js bundled. The page mounts the figure and sends the events in section 6. The page draws its own chat, its own navigation, and its own background.
 
-## 13. The included demo
+## 12. The included demo
 
 The demo is a host for the figure. It is not inside the figure.
 

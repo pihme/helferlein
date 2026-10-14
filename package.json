@@ -2,7 +2,7 @@
   "name": "helferlein",
   "version": "0.1.14",
   "private": true,
-  "description": "Animated 3D avatar.",
+  "description": "An animated Three.js 3D avatar that a web page can summon: it floats in, shows when it is waiting or working, and gets a random new look on every applied change.",
   "license": "PolyForm-Noncommercial-1.0.0",
   "author": "pihme (https://github.com/pihme)",
   "type": "module",

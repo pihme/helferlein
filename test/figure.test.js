@@ -481,3 +481,21 @@ test("the summoned figure keeps a lower margin that depends on the body", () => 
   const androidPad = screenPad(draw.buildFigure(android, false, "idle"), camera);
   assert.ok(androidPad > snowPad, String(androidPad));
 });
+
+test("clothes show on the lightbulb's glass", () => {
+  for (const clothes of catalogNames("clothes")) {
+    if (clothes === "None") continue;
+    const look = defaultLook();
+    look.shape = "Lightbulb";
+    look.clothes = clothes;
+    const fig = draw.buildFigure(look, false, "idle");
+    const skin = fig.getObjectByName("clothes-skin");
+    assert.ok(skin, clothes);
+    assert.ok(skin.material.map && skin.material.alphaTest > 0, clothes);
+    assert.equal(skin.material.transparent, false, clothes);
+  }
+  const bare = defaultLook();
+  bare.shape = "Lightbulb";
+  bare.clothes = "None";
+  assert.equal(draw.buildFigure(bare, false, "idle").getObjectByName("clothes-skin"), undefined);
+});

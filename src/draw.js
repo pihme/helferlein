@@ -339,6 +339,8 @@ function createDraw(THREE, env = {}) {
             [0.36, 1.66], [0.32, 1.88], [0.18, 2.04], [0.01, 2.14]
           ], glass);
           bulb.renderOrder = 2;
+          // Clothes cannot go on see-through glass; wearClothes gives this mesh a cloth skin.
+          bulb.userData.sheer = true;
           g.add(bulb);
           const metal = material.clone();
           metal.side = THREE.DoubleSide;
@@ -970,6 +972,30 @@ function createDraw(THREE, env = {}) {
         material.map = map;
         material.color.set(0xffffff);
         material.needsUpdate = true;
+        // A glass body (the lightbulb) keeps its glass. The garment is an opaque skin just
+        // outside it, cut to the clothed band; the rest of the skin is left out.
+        const sheer = [];
+        group.traverse(mesh => { if (mesh.isMesh && mesh.userData.sheer) sheer.push(mesh); });
+        if (!sheer.length) return;
+        const cut = clothesMap(look, place, true);
+        const skinMat = paint(look, "body", { map: cut, color: 0xffffff, alphaTest: 0.5, side: THREE.DoubleSide });
+        for (const glass of sheer) {
+          const geo = glass.geometry.clone();
+          if (!geo.attributes.normal) geo.computeVertexNormals();
+          const pos = geo.attributes.position;
+          const nrm = geo.attributes.normal;
+          for (let i = 0; i < pos.count; i++) {
+            pos.setXYZ(i, pos.getX(i) + nrm.getX(i) * 0.004, pos.getY(i) + nrm.getY(i) * 0.004, pos.getZ(i) + nrm.getZ(i) * 0.004);
+          }
+          const skin = new THREE.Mesh(geo, skinMat);
+          skin.name = "clothes-skin";
+          skin.position.copy(glass.position);
+          skin.quaternion.copy(glass.quaternion);
+          skin.scale.copy(glass.scale);
+          skin.renderOrder = 3;
+          writeClothUVs(skin);
+          glass.parent.add(skin);
+        }
       }
       // The back is atan2's branch cut. A shared vertex cannot carry both sides,
       // so each triangle gets its own copies and a continuous angle.
@@ -1021,7 +1047,7 @@ function createDraw(THREE, env = {}) {
         }
         geom.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
       }
-      function clothesMap(look, place) {
+      function clothesMap(look, place, cutOut) {
         const w = 512;
         const h = 512;
         const canvas = createCanvas(w, h);
@@ -1078,7 +1104,7 @@ function createDraw(THREE, env = {}) {
             const u = x / w;
             const top = topAt(u);
             if (fig < hem || fig > top) {
-              put(x, y, bodyPx);
+              put(x, y, cutOut ? [0, 0, 0, 0] : bodyPx);
               continue;
             }
             let px = clothPx;
