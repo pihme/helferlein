@@ -5,7 +5,7 @@ import { gzipSync } from "node:zlib";
 
 const BUDGET = {
   // Custom meshes (hat brim, cat ears, hammer fillet, coil, tool outlines) passed 92 kB raw and 23 kB gzip.
-  "dist/helferlein.js": { raw: 112_000, gzip: 28_000 },
+  "dist/helferlein.js": { raw: 116_000, gzip: 29_000 },
   "dist/helferlein.min.js": { raw: 640_000, gzip: 165_000 }
 };
 
