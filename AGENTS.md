@@ -15,7 +15,7 @@ License: **PolyForm Noncommercial 1.0.0** (`LICENSE`). Source-available, not OSI
 ## How to work here
 
 - README.md is the public face. SPEC.md is the product. This file is for the agent.
-- The avatar is a figure a host summons, not a control for one kind of UI. It does not implement a panel or a chat. A host may use the resting form as a button that opens a panel; that is one integration, not the product. The included demo is a host, specified in SPEC.md section 13. Do not build the chat into the figure.
+- The avatar is a figure a host summons, not a control for one kind of UI. It does not implement a panel or a chat. A host may use the resting form as a button that opens a panel; that is one integration, not the product. The included demo is a host, specified in SPEC.md section 12. Do not build the chat into the figure.
 - Motions run summoned (the swoop into idle), idle, working, applied, dismissed. Working pulses the face between focused and determined. Dismissed uses the resting face. Applied spins; the new look appears while the back faces the viewer. A roll changes the hue and one or two of body, expression, clothes, tool, and extra. The sit-out, the locks, the absent streaks, and the chances are SPEC.md section 6. Follow that section. The first look is the android with no clothes, no tool, and no extra. Rollable expressions are neutral, curious, pleased, surprised, and wink.
 - That “page now shows the finished work” signal is a host event. It is not “a plugin loaded” and not “a task object became active.”
 - A new look is one randomize roll. Color is calculated from one hue, with the role table in SPEC.md. Do not store a palette list.
