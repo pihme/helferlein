@@ -82,9 +82,10 @@ The tool is `design/mugshot.js`. The writer is `scripts/mugshots.mjs` (`npm run 
 - `npm run mugshots -- --into final` writes the reference set to `design/final`.
 - `npm run mugshots -- --only wrench` writes one item. A catalog name or its prototype slug both match.
 - `npm run mugshots -- --out <dir>` writes those same folders under `<dir>` instead, for a look that stays out of `design/progress`, `design/final`, and `design/locked`.
-- `npm run mugshots -- --serve` prints a local URL for `design/mugshot.html` and leaves the viewer up.
+- `npm run mugshots -- --rows --out <dir>` writes one pose sheet per tool and per extra. Eight bodies sit in a row, wearing that item, with no clothes. One stage camera frames the row and backs up to whichever body needs the most room. `--out` is required, and that directory stays outside `design/progress`, `design/final`, and `design/locked`. `--only` still picks one item.
+- `npm run mugshots -- --serve` prints a local URL for `design/mugshot.html` and leaves the viewer up. Add `?row=1` to that URL for the pose row.
 
-Folders are `bodies`, `clothes`, `tools`, and `extras`, and the slug is the prototype picture's name. PNGs under `design/progress`, `design/final`, and `design/locked` are Git LFS. Headless Chromium is `/snap/bin/chromium`, or the browser in `CHROME` when it lives elsewhere. The run is done when each requested sheet is a PNG and its four panels are labeled Front, Side, Top, and Context.
+Folders are `bodies`, `clothes`, `tools`, and `extras`, and the slug is the prototype picture's name. PNGs under `design/progress`, `design/final`, and `design/locked` are Git LFS. Headless Chromium is `/snap/bin/chromium`, or the browser in `CHROME` when it lives elsewhere. The run is done when each requested sheet is a PNG and its four panels are labeled Front, Side, Top, and Context. A row sheet is done when the eight bodies are labeled with their names.
 
 ## Locked designs
 

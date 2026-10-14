@@ -3,6 +3,8 @@
 //   npm run mugshots -- --into final design/final
 //   npm run mugshots -- --only wrench
 //   npm run mugshots -- --serve      open the page and leave it up
+//   npm run mugshots -- --rows --out <dir>
+// A row is the pose view of one tool or extra on every body.
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
@@ -28,21 +30,24 @@ function args(argv) {
   let only = "";
   let out = "";
   let serve = false;
+  let rows = false;
   for (let i = 2; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === "--into") into = argv[++i];
     else if (arg === "--only") only = argv[++i];
     else if (arg === "--out") out = argv[++i];
     else if (arg === "--serve") serve = true;
+    else if (arg === "--rows") rows = true;
     else if (arg === "--help") return { help: true };
     else throw new Error("unknown argument " + arg);
   }
   if (into !== "progress" && into !== "final") throw new Error("--into is progress or final");
-  return { into, only, out, serve };
+  return { into, only, out, serve, rows };
 }
 
-function wanted(only) {
-  const items = createMugshot(THREE).items();
+function wanted(only, rows) {
+  let items = createMugshot(THREE).items();
+  if (rows) items = items.filter(item => item.kind === "tool" || item.kind === "extra");
   if (!only) return items;
   const key = only.toLowerCase();
   const found = items.filter(item => item.slug === key || item.name.toLowerCase() === key);
@@ -169,7 +174,9 @@ async function grab(session, url) {
   throw new Error("timed out waiting for " + url);
 }
 
-const help = `Usage: npm run mugshots -- [--into progress|final] [--only name] [--out dir] [--serve]`;
+const help = `Usage: npm run mugshots -- [--into progress|final] [--only name] [--out dir] [--rows] [--serve]
+--rows writes one pose sheet per tool and extra, eight bodies across.
+It needs --out, outside design/progress, design/final, and design/locked.`;
 
 try {
   const options = args(process.argv);
@@ -182,6 +189,15 @@ try {
   if (destRoot === locked || destRoot.startsWith(locked + path.sep)) {
     throw new Error("design/locked stays as it is");
   }
+  if (options.rows) {
+    if (!options.out) throw new Error("--rows needs --out");
+    for (const name of ["progress", "final", "locked"]) {
+      const reserved = path.join(root, "design", name);
+      if (destRoot === reserved || destRoot.startsWith(reserved + path.sep)) {
+        throw new Error("--rows stays outside design/progress, design/final, and design/locked");
+      }
+    }
+  }
   const server = await serveRepo();
   const port = server.address().port;
   const page = `http://127.0.0.1:${port}/design/mugshot.html`;
@@ -189,12 +205,13 @@ try {
     console.log(page);
     await new Promise(() => {});
   }
-  const items = wanted(options.only);
+  const items = wanted(options.only, options.rows);
   const chrome = await launchChrome();
   const session = await connect(chrome.port);
   try {
     for (const item of items) {
-      const url = `${page}?capture=1&kind=${encodeURIComponent(item.kind)}&name=${encodeURIComponent(item.name)}`;
+      const row = options.rows ? "&row=1" : "";
+      const url = `${page}?capture=1${row}&kind=${encodeURIComponent(item.kind)}&name=${encodeURIComponent(item.name)}`;
       const png = await grab(session, url);
       const match = png.match(/^data:image\/png;base64,(.+)$/);
       if (!match) throw new Error("not a png for " + item.name);
