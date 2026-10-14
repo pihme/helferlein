@@ -1478,22 +1478,26 @@ function createDraw(THREE, env = {}) {
         // Forward, and low enough that the forearm slopes down at the work.
         over: { target: [0.30, -0.22, 0.26], pole: [1.05, 0.2, -0.2] },
         raised: { target: [0.22, 0.28, 0.22], pole: [0.8, -0.4, 0.1] },
+        // Hand at shoulder height. The elbow bends forward, so the forearm lies level and reaches out.
+        level: { target: [0.30, 0, 0.33], pole: [0, 0, 1] },
         // Out and forward, so the blade crosses in front of the body.
-        across: { target: [0.30, 0.02, 0.34], pole: [0.55, 0.1, 0.25] }
+        across: { target: [0.30, 0.02, 0.34], pole: [0.55, 0.1, 0.25] },
+        // The forearm points forward, in front of the body.
+        ahead: { target: [0.06, -0.12, 0.42], pole: [0.7, 0.1, 0.05] }
       };
       const HOLDS = {
-        "Wrench": { arm: "raised", along: "forearm", twist: RIGHT },
+        "Wrench": { arm: "level", aim: UP, twist: RIGHT },
         "Pencil": { arm: "raised", along: "forearm", twist: RIGHT },
         "Magnifying glass": { at: "glass", aim: UP, twist: RIGHT },
         "Brush": { arm: "forward", aim: [0, -0.94, 0.34], twist: RIGHT },
         "Clipboard": { arm: "forward", aim: UP, twist: RIGHT },
         "Watering can": { arm: "forward", aim: [0.12, 0.98, 0.16], twist: "forearm" },
-        "Telescope": { at: "scope", aim: [0.72, -0.06, 0.69], twist: UP },
-        "Hammer": { arm: "raised", along: "forearm", twist: RIGHT },
+        "Telescope": { at: "scope", aim: [0.22, 0, 0.98], twist: UP },
+        "Hammer": { arm: "level", aim: UP, twist: RIGHT },
         "Saw": { arm: "across", aim: [-0.35, 0.02, 0.94], twist: DOWN },
         "Fairy wand": { arm: "raised", along: "forearm", twist: RIGHT },
         "Scissors": { arm: "forward", along: "forearm", twist: UP },
-        "Tongs": { arm: "forward", aim: [0.4, -0.74, 0.54], twist: RIGHT }
+        "Tongs": { arm: "ahead", aim: [-0.83, -0.35, 0.44], twist: RIGHT }
       };
 
       const fromDown = new THREE.Vector3(0, -1, 0);
