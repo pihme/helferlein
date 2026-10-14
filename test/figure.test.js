@@ -223,14 +223,14 @@ test("two bones reach the hand and the working arm lifts", () => {
 
 test("each tool sits in the right fist and points the way the hold note says", () => {
   const expectHold = {
-    "Wrench": { aim: [0, 1, 0], face: [0, 0, 1], reach: "level" },
+    "Wrench": { aim: [0, 1, 0], face: [0, 0, 1], reach: "level", elbow: "back" },
     "Pencil": { along: "forearm", reach: "raised", show: 0.28 },
     "Magnifying glass": { aim: [0, 1, 0], reach: "eye", near: 0.45 },
     "Brush": { aim: [0, -0.94, 0.34], min: 0.95, reach: "forward" },
     "Clipboard": { aim: [0, 1, 0], face: [0, 0, 1], reach: "forward" },
     "Watering can": { aim: [0, 1, 0], min: 0.9, spout: "forearm", reach: "forward" },
-    "Telescope": { aim: [0.22, 0, 0.98], min: 0.9, reach: "cheek", near: 0.55 },
-    "Hammer": { aim: [0, 1, 0], face: [1, 0, 0], reach: "level" },
+    "Telescope": { aim: [-0.38, 0, 0.92], min: 0.9, reach: "cheek", near: 0.55 },
+    "Hammer": { aim: [0, 1, 0], face: [1, 0, 0], reach: "level", elbow: "back" },
     "Saw": { aim: [-0.35, 0.02, 0.94], min: 0.9, face: [0, -1, 0], reach: "across" },
     "Fairy wand": { along: "forearm", face: [0, 0, 1], reach: "raised" },
     "Scissors": { along: "forearm", face: [0, 1, 0], reach: "forward" },
@@ -337,6 +337,12 @@ test("each tool sits in the right fist and points the way the hold note says", (
         assert.ok(Math.abs(forearm.y) < 0.2, `${shape} ${name} forearm is flat ${forearm.y.toFixed(2)}`);
         assert.ok(Math.abs(aim.dot(forearm)) < 0.35, `${shape} ${name} is perpendicular to the forearm ${aim.dot(forearm).toFixed(2)}`);
         assert.ok(socket[1] > shoulder[1] - 0.15, `${shape} ${name} does not hang`);
+        if (spec.elbow === "back") {
+          const hx = socket[0] - shoulder[0];
+          const hz = socket[2] - shoulder[2];
+          const bend = hx * (origin.z - shoulder[2]) - hz * (origin.x - shoulder[0]);
+          assert.ok(bend < -0.01, `${shape} ${name} elbow points back ${bend.toFixed(3)}`);
+        }
       } else if (spec.reach === "across") {
         assert.ok(socket[2] > shoulder[2] + 0.25, `${shape} ${name} reaches forward`);
         assert.ok(socket[1] > shoulder[1] - 0.2, `${shape} ${name} does not hang`);

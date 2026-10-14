@@ -1478,8 +1478,8 @@ function createDraw(THREE, env = {}) {
         // Forward, and low enough that the forearm slopes down at the work.
         over: { target: [0.30, -0.22, 0.26], pole: [1.05, 0.2, -0.2] },
         raised: { target: [0.22, 0.28, 0.22], pole: [0.8, -0.4, 0.1] },
-        // Hand at shoulder height. The elbow bends forward, so the forearm lies level and reaches out.
-        level: { target: [0.30, 0, 0.33], pole: [0, 0, 1] },
+        // Hand at shoulder height. The elbow bends back, so the point of the elbow faces away.
+        level: { target: [0.30, 0, 0.33], pole: [0, 0, -1] },
         // Out and forward, so the blade crosses in front of the body.
         across: { target: [0.30, 0.02, 0.34], pole: [0.55, 0.1, 0.25] },
         // The forearm points forward, in front of the body.
@@ -1492,7 +1492,7 @@ function createDraw(THREE, env = {}) {
         "Brush": { arm: "forward", aim: [0, -0.94, 0.34], twist: RIGHT },
         "Clipboard": { arm: "forward", aim: UP, twist: RIGHT },
         "Watering can": { arm: "forward", aim: [0.12, 0.98, 0.16], twist: "forearm" },
-        "Telescope": { at: "scope", aim: [0.22, 0, 0.98], twist: UP },
+        "Telescope": { at: "scope", aim: [-0.38, 0, 0.92], twist: UP },
         "Hammer": { arm: "level", aim: UP, twist: RIGHT },
         "Saw": { arm: "across", aim: [-0.35, 0.02, 0.94], twist: DOWN },
         "Fairy wand": { arm: "raised", along: "forearm", twist: RIGHT },
