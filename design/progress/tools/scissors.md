@@ -20,4 +20,4 @@ Looking along the blades, they stick out to either side of the pivot ball. The r
 
 ## Context
 
-The right arm reaches out to the screen-right. The fist is at the rings, and the open blades point past the hand.
+The right forearm reaches forward. The rings sit just past the fist, and the blades run along the forearm.

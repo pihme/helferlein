@@ -20,4 +20,4 @@ Looking along the handle, the head is a long bar. A lighter band marks where the
 
 ## Context
 
-The right arm reaches out to the screen-right. The fist is on the handle, and the head is beyond the fist.
+The forearm lies level, out to the screen-right, and the elbow bends back. The hammer stands up from the fist, the head is in profile, and the fist is about a fifth of the way up from the butt.

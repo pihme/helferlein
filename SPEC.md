@@ -143,13 +143,12 @@ Every body, garment, tool, and extra in section 8 has a finished look. The sheet
 
 `design/prototype/bodies`, `design/prototype/clothes`, `design/prototype/tools`, and `design/prototype/extras` record the earlier pass, with their screenshots and the code that drew them.
 
-The color rules in section 8 are rules. The lightness and chroma numbers, and the warm/cool cut in the green band, are still open. The grip notes in `design/holds.md` are still the reference for how a tool is held. The locked sheet shows the grip the figure uses today.
+The color rules in section 8 are rules. The lightness and chroma numbers, and the warm/cool cut in the green band, are still open. Each tool’s grip is locked. The context panel of its sheet in `design/locked/tools` is that grip, and `design/holds.md` records it.
 
 ## 10. Open
 
 - The lightness and chroma numbers for each color role.
 - Where the warm/cool cut sits in the green band.
-- Whether each tool’s grip matches `design/holds.md`.
 
 ## 11. The rig
 

@@ -20,4 +20,4 @@ Looking down the tip, the pencil is a faceted polygon. The dark center is the le
 
 ## Context
 
-The right hand holds the shaft, on the screen-right of the figure. The tip points down, and a short end of the pencil shows past the fist.
+The right arm is raised. The pencil stands up along the forearm, the tip points up, and the tip clears the fist.

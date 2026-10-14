@@ -20,4 +20,4 @@ Looking down the wide end, the telescope is one circle, the lip.
 
 ## Context
 
-The right arm is raised on the screen-right of the figure. The hand holds the slim tube, and the wide end points out beside the head.
+The right hand holds the eyepiece beside the visor. The wide end points forward and in, toward the middle of the body.

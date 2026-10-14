@@ -20,4 +20,4 @@ Looking along the arms, both pads show, one at each end of a bar. The bend is th
 
 ## Context
 
-The right hand holds the bend, on the screen-right of the figure. The tips point down.
+The forearm points forward. The fist holds the bend, and the tips point down toward a spot in front of the body.
