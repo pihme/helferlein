@@ -3,6 +3,7 @@ import { readdirSync } from "node:fs";
 import test from "node:test";
 import * as THREE from "three";
 import { bodyCenterY } from "../src/figure.js";
+import { SHAPES } from "../src/roll.js";
 import { createMugshot } from "../design/mugshot.js";
 
 function createCanvas(w, h) {
@@ -210,4 +211,101 @@ test("context backs up along the stage view when the figure leaves the frame", (
 test("an unknown item is rejected", () => {
   assert.throws(() => shot.views("tool", "None"), /unknown tool None/);
   assert.throws(() => shot.views("shape", "Wrench"), /unknown shape Wrench/);
+});
+
+const PLACED = {
+  Android: { headTop: 2.32, faceY: 1.74 },
+  Peanut: { headTop: 2.06, faceY: 1.76 },
+  Pear: { headTop: 1.94, faceY: 1.68 },
+  Egg: { headTop: 1.86, faceY: 1.42 },
+  Teardrop: { headTop: 2.0, faceY: 1.42 },
+  Snowman: { headTop: 2.06, faceY: 1.82 },
+  Lightbulb: { headTop: 2.14, faceY: 1.64 },
+  Rocket: { headTop: 2.14, faceY: 1.60 }
+};
+
+function placeOf(rig) {
+  let place = null;
+  rig.traverse(obj => { if (obj.userData && obj.userData.place) place = obj.userData.place; });
+  return place;
+}
+
+function peakOf(rig, camera) {
+  camera.updateMatrixWorld(true);
+  camera.updateProjectionMatrix();
+  let peak = 0;
+  const point = new THREE.Vector3();
+  rig.updateMatrixWorld(true);
+  rig.traverse(obj => {
+    if (!obj.isMesh || !obj.geometry || !obj.geometry.attributes.position) return;
+    const position = obj.geometry.attributes.position;
+    for (let i = 0; i < position.count; i++) {
+      point.fromBufferAttribute(position, i);
+      const world = obj.localToWorld(point.clone());
+      world.applyMatrix4(camera.matrixWorldInverse);
+      world.applyMatrix4(camera.projectionMatrix);
+      peak = Math.max(peak, Math.abs(world.x), Math.abs(world.y));
+    }
+  });
+  return peak;
+}
+
+test("a row seats every body under one stage camera", () => {
+  const row = shot.row("tool", "Wrench");
+  assert.deepEqual(row.cells.map(cell => cell.shape), SHAPES);
+  for (const cell of row.cells) {
+    const place = placeOf(cell.rig);
+    assert.equal(place.headTop, PLACED[cell.shape].headTop, cell.shape);
+    assert.equal(place.faceY, PLACED[cell.shape].faceY, cell.shape);
+    assert.ok(cell.rig.getObjectByName("held-tool"), cell.shape);
+    assert.equal(cell.rig.getObjectByName("extra"), undefined, cell.shape);
+    let mapped = false;
+    cell.rig.getObjectByName("body").traverse(obj => {
+      if (obj.isMesh && obj.material && obj.material.map) mapped = true;
+    });
+    assert.equal(mapped, false, cell.shape);
+    const inner = cell.rig.children[0];
+    const world = new THREE.Box3().setFromObject(cell.rig.getObjectByName("body")).getCenter(new THREE.Vector3());
+    assert.ok(Math.abs(world.y - bodyCenterY(inner)) < 1e-3, cell.shape);
+  }
+
+  const home = new THREE.Vector3(1.55, 1.72, 3.95);
+  const target = new THREE.Vector3(0, 1.2, 0);
+  const homeOffset = home.clone().sub(target);
+  const camera = row.camera;
+  camera.updateMatrixWorld(true);
+  const offset = camera.position.clone().sub(target);
+  assert.ok(offset.clone().normalize().dot(homeOffset.clone().normalize()) > 0.999);
+  const backedUp = offset.length() > homeOffset.length() + 1e-3;
+  let worst = 0;
+  for (const cell of row.cells) {
+    const peak = peakOf(cell.rig, camera);
+    const limit = backedUp ? 1 / shot.MARGIN : 1;
+    assert.ok(peak <= limit + 1e-3, `${cell.shape} ${peak}`);
+    worst = Math.max(worst, peak);
+  }
+  if (backedUp) assert.ok(worst > 0.75, worst);
+
+  const antenna = shot.row("extra", "Antenna");
+  assert.deepEqual(antenna.cells.map(cell => cell.shape), SHAPES);
+  for (const cell of antenna.cells) {
+    assert.equal(cell.rig.getObjectByName("extra").name, "extra", cell.shape);
+    assert.equal(cell.rig.getObjectByName("held-tool"), undefined, cell.shape);
+  }
+  const alone = shot.views("extra", "Antenna").context.camera;
+  assert.ok(antenna.camera.position.distanceTo(target) + 1e-6 >= alone.position.distanceTo(target));
+  const antennaOffset = antenna.camera.position.clone().sub(target);
+  assert.ok(antennaOffset.clone().normalize().dot(homeOffset.clone().normalize()) > 0.999);
+  assert.ok(antennaOffset.length() > homeOffset.length() + 0.05);
+  let antennaWorst = 0;
+  for (const cell of antenna.cells) {
+    const peak = peakOf(cell.rig, antenna.camera);
+    assert.ok(peak <= 1 / shot.MARGIN + 1e-3, `${cell.shape} ${peak}`);
+    antennaWorst = Math.max(antennaWorst, peak);
+  }
+  assert.ok(antennaWorst > 0.75, antennaWorst);
+
+  assert.throws(() => shot.row("clothes", "Suit"), /a row is a tool or an extra/);
+  assert.throws(() => shot.row("shape", "Android"), /a row is a tool or an extra/);
+  assert.throws(() => shot.row("tool", "None"), /unknown tool None/);
 });

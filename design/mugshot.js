@@ -3,6 +3,8 @@
 // Context wears it on the default body (a body is shown as itself). The stage camera
 // stays put while the figure fits, and backs up along that view when it would be cut off.
 // A garment is a texture on the body, so on its own it is that shell.
+// A row is that same pose view for one tool or extra on every body. One stage camera
+// frames the row, backed up to whichever body needs the most room.
 import * as THREE from "three";
 import { createDraw } from "../src/draw.js";
 import { bodyCenterY } from "../src/figure.js";
@@ -223,7 +225,34 @@ function createMugshot(THREE, env) {
     return { item, solo, cameras: frameSolo(solo), context: { rig, camera: stageView(rig) } };
   }
 
-  return { items, views, MARGIN };
+  // One tool or extra, worn with no clothes, on every body. The camera is the stage
+  // view pulled back to the body that sticks out the furthest.
+  function row(kind, name) {
+    const item = resolve(kind, name);
+    if (item.kind !== "tool" && item.kind !== "extra") {
+      throw new Error(`mugshot: a row is a tool or an extra, not a ${item.kind}`);
+    }
+    const cells = SHAPES.map(shape => {
+      const look = defaultLook();
+      look.shape = shape;
+      look[item.kind] = item.name;
+      return { shape, rig: seat(draw.buildFigure(look, false, "idle")) };
+    });
+    const target = new THREE.Vector3(0, 1.2, 0);
+    let camera = null;
+    let reach = -1;
+    for (const cell of cells) {
+      const framed = stageView(cell.rig);
+      const distance = framed.position.distanceTo(target);
+      if (distance > reach) {
+        reach = distance;
+        camera = framed;
+      }
+    }
+    return { item, cells, camera };
+  }
+
+  return { items, views, row, MARGIN };
 }
 
 const PANEL = 512;
@@ -292,7 +321,8 @@ function boot() {
   }
 
   function fillKinds() {
-    for (const [value, label] of Object.entries(KIND)) {
+    const kinds = rowMode ? [["tool", "Tool"], ["extra", "Extra"]] : Object.entries(KIND);
+    for (const [value, label] of kinds) {
       const option = document.createElement("option");
       option.value = value;
       option.textContent = label;
@@ -312,13 +342,38 @@ function boot() {
     }
   }
 
-  function paint(view) {
-    if (current) {
-      soloScene.remove(current.solo);
-      contextScene.remove(current.context.rig);
-      dispose(current.solo);
-      dispose(current.context.rig);
+  function release() {
+    const view = current;
+    current = null;
+    if (!view) return;
+    if (view.solo) {
+      soloScene.remove(view.solo);
+      dispose(view.solo);
     }
+    if (view.context) {
+      contextScene.remove(view.context.rig);
+      dispose(view.context.rig);
+    }
+    if (view.cells) {
+      for (const cell of view.cells) {
+        contextScene.remove(cell.rig);
+        dispose(cell.rig);
+      }
+    }
+  }
+
+  function label(words) {
+    ctx.fillStyle = "#1c2430";
+    ctx.font = "600 22px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    words.forEach((word, index) => {
+      ctx.fillText(word, index * PANEL + PANEL / 2, PANEL + LABEL / 2);
+    });
+  }
+
+  function paint(view) {
+    release();
     current = view;
     soloScene.add(view.solo);
     contextScene.add(view.context.rig);
@@ -341,30 +396,51 @@ function boot() {
     ctx.fillStyle = "#d5d0c6";
     ctx.fillRect(0, 0, sheet.width, sheet.height);
     ctx.drawImage(renderer.domElement, 0, 0);
-    ctx.fillStyle = "#1c2430";
-    ctx.font = "600 22px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    WORDS.forEach((word, index) => {
-      ctx.fillText(word, index * PANEL + PANEL / 2, PANEL + LABEL / 2);
-    });
+    label(WORDS);
     document.title = `${KIND[view.item.kind]} · ${view.item.name}`;
+    return sheet.toDataURL("image/png");
+  }
+
+  function paintRow(view) {
+    release();
+    current = view;
+    const width = PANEL * view.cells.length;
+    renderer.setSize(width, PANEL, false);
+    view.cells.forEach((cell, index) => {
+      contextScene.add(cell.rig);
+      renderer.setViewport(index * PANEL, 0, PANEL, PANEL);
+      renderer.setScissor(index * PANEL, 0, PANEL, PANEL);
+      renderer.render(contextScene, view.camera);
+      contextScene.remove(cell.rig);
+    });
+    sheet.width = width;
+    sheet.height = PANEL + LABEL;
+    ctx.fillStyle = "#d5d0c6";
+    ctx.fillRect(0, 0, sheet.width, sheet.height);
+    ctx.drawImage(renderer.domElement, 0, 0);
+    label(view.cells.map(cell => cell.shape));
+    document.title = `Row · ${KIND[view.item.kind]} · ${view.item.name}`;
     return sheet.toDataURL("image/png");
   }
 
   function show(kind, name) {
     fillItems(kind, name);
     kindEl.value = kind;
+    if (rowMode) return paintRow(shot.row(kind, itemEl.value));
     return paint(shot.views(kind, itemEl.value));
   }
 
+  const params = new URLSearchParams(location.search);
+  const rowMode = params.get("row") === "1";
+  if (rowMode) {
+    document.querySelector("p").textContent = "Eight bodies wear this tool or extra, with no clothes. One stage camera frames the row, backed up to whichever body needs the most room.";
+  }
   fillKinds();
   kindEl.addEventListener("change", () => show(kindEl.value, ""));
   itemEl.addEventListener("change", () => show(kindEl.value, itemEl.value));
 
-  const params = new URLSearchParams(location.search);
-  const kind = params.get("kind") || "shape";
-  const name = params.get("name") || "Android";
+  const kind = params.get("kind") || (rowMode ? "tool" : "shape");
+  const name = params.get("name") || (rowMode ? "Wrench" : "Android");
   try {
     const png = show(kind, name);
     window.__mugshotPng = params.get("capture") ? png : "";
