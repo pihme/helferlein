@@ -16,3 +16,8 @@ node_modules/
 dist/
 coverage/
 *.tgz
+
+# Playwright
+test-results/
+playwright-report/
+_site/
