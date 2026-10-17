@@ -4,7 +4,7 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/helferlein-logo-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset="docs/assets/helferlein-logo-light.svg">
-    <img src="docs/assets/helferlein-logo-light.svg" width="220" alt="Helferlein, a peanut-shaped android with a dark visor, waving hello">
+    <img src="docs/assets/helferlein-logo-universal.png" width="220" alt="Helferlein, a peanut-shaped android with a dark visor, waving hello">
   </picture>
 </p>
 
