@@ -38,7 +38,7 @@ THE SOFTWARE.
 
 ## Assets
 
-Helferlein contains no third-party models, textures, fonts, icons, animations or shaders. The meshes, the clothes textures and the faces are generated in code (`src/draw.js`) through three.js. The sketches in `assets/`, the icons in `demo/icons.js`, the screenshots in `docs/images/` and `design/prototype/`, and the fallback silhouette in `src/figure.js` were made for this project. The pages use the browser's `system-ui` font and ship no font file.
+Helferlein contains no third-party models, textures, fonts, icons, animations or shaders. The meshes, the clothes textures and the faces are generated in code (`src/draw.js`) through three.js. The sketches in `assets/`, the icons in `demo/icons.js`, the logo in `docs/assets/`, the favicons and app icons in `site/`, the screenshots in `docs/images/` and `design/prototype/`, and the fallback silhouette in `src/figure.js` were made for this project. The pages use the browser's `system-ui` font and ship no font file.
 
 The sources linked in [`design/holds.md`](design/holds.md) are references for how a person holds each tool. Helferlein links to them and contains none of their text or images.
 

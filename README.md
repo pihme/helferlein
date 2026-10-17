@@ -1,7 +1,11 @@
 # Helferlein
 
 <p align="center">
-  <img src="docs/mascot.png" width="220" alt="Helferlein in its first look: a pale peanut-shaped android with a dark visor, two round blue eyes, a small smile and thin arms">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/helferlein-logo-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/helferlein-logo-light.svg">
+    <img src="docs/assets/helferlein-logo-universal.png" width="220" alt="Helferlein, a peanut-shaped android with a dark visor, waving hello">
+  </picture>
 </p>
 
 [![CI](https://github.com/pihme/helferlein/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/pihme/helferlein/actions/workflows/ci.yml)
