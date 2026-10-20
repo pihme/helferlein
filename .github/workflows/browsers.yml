@@ -28,15 +28,17 @@ jobs:
         browser: [chromium, firefox, webkit, msedge]
     steps:
       - uses: actions/checkout@v7
-      - uses: cachix/install-nix-action@v31
-      - run: bash .github/scripts/load-nix-env.sh ./nix/reference-env
+      # Not the Nix shell: its ldd and loader cannot see the runner's system
+      # libraries, so Firefox and WebKit fail the host check even after
+      # --with-deps. Node 22 matches nix/reference-env.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
       - run: npm ci
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
       - run: npm run build
-      # Playwright's browsers are built for the runner's glibc. Nix libraries
-      # on LD_LIBRARY_PATH make them fail to start, so the system packages
-      # stay with --with-deps.
       - name: Install ${{ matrix.browser }}
         run: npx playwright install --with-deps ${{ matrix.browser }}
       - name: Smoke test
