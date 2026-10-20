@@ -60,13 +60,3 @@ updates:
     commit-message:
       prefix: chore
       include: scope
-  - package-ecosystem: nix
-    directory: /nix/browsers
-    schedule:
-      interval: weekly
-      day: saturday
-    open-pull-requests-limit: 5
-    labels: [dependencies]
-    commit-message:
-      prefix: chore
-      include: scope

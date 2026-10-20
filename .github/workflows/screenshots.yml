@@ -17,12 +17,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: cachix/install-nix-action@v31
-      - run: bash .github/scripts/load-nix-env.sh ./nix/browsers
+      - run: bash .github/scripts/load-nix-env.sh ./nix/reference-env
       - run: npm ci
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
       - run: npm run build
-      - run: npx playwright install chromium
+      - run: npx playwright install --with-deps chromium
       - run: node scripts/screenshots.mjs screenshots
       - uses: actions/upload-artifact@v7
         with:
