@@ -21,3 +21,7 @@ coverage/
 test-results/
 playwright-report/
 _site/
+
+# Nix dev shells
+/result
+.pip/

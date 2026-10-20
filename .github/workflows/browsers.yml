@@ -28,16 +28,14 @@ jobs:
         browser: [chromium, firefox, webkit, msedge]
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: npm
+      - uses: cachix/install-nix-action@v31
+      - run: bash .github/scripts/load-nix-env.sh ./nix/browsers
       - run: npm ci
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
       - run: npm run build
       - name: Install ${{ matrix.browser }}
-        run: npx playwright install --with-deps ${{ matrix.browser }}
+        run: npx playwright install ${{ matrix.browser }}
       - name: Smoke test
         run: npx playwright test --project=${{ matrix.browser }}
       - uses: actions/upload-artifact@v7
