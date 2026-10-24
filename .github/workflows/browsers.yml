@@ -28,6 +28,9 @@ jobs:
         browser: [chromium, firefox, webkit, msedge]
     steps:
       - uses: actions/checkout@v7
+      # Not the Nix shell: its ldd and loader cannot see the runner's system
+      # libraries, so Firefox and WebKit fail the host check even after
+      # --with-deps. Node 22 matches nix/reference-env.
       - uses: actions/setup-node@v7
         with:
           node-version: 22
