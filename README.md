@@ -118,6 +118,7 @@ Without a bundler, an import map points `three` at a three.js module build (from
 | Option | Default | Effect |
 | --- | --- | --- |
 | `reducedMotion` | follows `prefers-reduced-motion` | `true`: calm, see below. `false`: always animate. Left out, it follows the reader's setting, also when it changes while the page is open. |
+| `frame` | `false` | `true`: backs the camera up along the same view until the whole figure fits, also when it is turned. Left out, the camera stays at the stage view. |
 
 ### Host events
 
