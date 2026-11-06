@@ -14,6 +14,8 @@
 
 Helferlein is an animated 3D avatar, built on [Three.js](https://threejs.org/), that a web page can summon as a visible helper. The name is everyday German for “little helper.” The page calls it into view: it swoops in from a small resting form, floats and idles while it waits, and holds a working pose while work is in progress. When the page says the finished work is on screen (the `applied` event), it spins, and a randomized new look appears while its back faces you. Dismissed, it folds back into the resting form.
 
+Part of [Hobelbank](https://pihme.github.io/hobelbank/), a set of projects on building software in the age of AI.
+
 A new look is one roll. It changes the hue and one or two of the body, the expression, the clothes, a tool in hand, and one extra such as bunny ears or a hat, never all of them. The colors of all parts are computed from that one hue, so they harmonize. Something that just changed sits out the next roll, and a new tool, new clothes, or a new extra stays for a while. The first look is a plain android with no clothes, no tool, and no extra. The rules are in [SPEC.md, section 6](SPEC.md#6-host-contract).
 
 Helferlein draws only the figure. The page that embeds it (the *host*) owns everything around it: the chat, the panel, the navigation, the background.
